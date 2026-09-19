@@ -60,9 +60,12 @@ async def get_decision(rid: str, wait: int = 25) -> JSONResponse:
 
 
 @app.post("/v1/requests/{rid}/ack")
-async def ack(rid: str) -> dict[str, Any]:
-    store.ack(rid)
-    return {"ok": True}
+async def ack(rid: str) -> JSONResponse:
+    try:
+        store.ack(rid)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=409)
+    return JSONResponse({"ok": True})
 
 
 @app.post("/v1/requests/{rid}/cancel")

@@ -68,6 +68,16 @@ def test_ledger_timestamp_tamper_detected(tmp_path) -> None:
     assert store.verify_chain()["ok"] is False
 
 
+def test_double_ack_rejected(tmp_path) -> None:
+    store = Store(str(tmp_path / "ack.db"))
+    future = _iso(datetime.now(timezone.utc) + timedelta(hours=1))
+    rid = store.create_request(_payload("ack1", future))["id"]
+    store.decide(rid, "approved", None, None, {"email": "r@x.com"})
+    store.ack(rid)  # first consume ok
+    with pytest.raises(ValueError):
+        store.ack(rid)  # exactly-once: second consume rejected
+
+
 def test_seed_demo_completes_without_expiring_history(tmp_path) -> None:
     # seed_demo decides historical requests; expiry enforcement must not reject
     # them on a fresh database (regression: server failed to start).

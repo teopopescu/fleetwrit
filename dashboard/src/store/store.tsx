@@ -223,10 +223,23 @@ function LiveProvider({ children }: { children: ReactNode }) {
     }
 
     async function poll() {
-      const [ov, inbox] = await Promise.all([fetchOverview(), fetchInbox()]);
+      // Refresh the catalog alongside the inbox: an agent can register a new
+      // action type after mount, and LiveRequestDetail needs its definition to
+      // render (otherwise the request is stuck on "Loading request…").
+      const [ov, inbox, ag, at] = await Promise.all([
+        fetchOverview(),
+        fetchInbox(),
+        fetchAgents(),
+        fetchActionTypes(),
+      ]);
       if (!mounted) return;
       setOverview(ov);
-      setState((prev) => ({ ...prev, requests: inbox.requests.map(mapRequest) }));
+      setState((prev) => ({
+        ...prev,
+        agents: ag.agents.map((a) => mapAgent(a, inbox.requests, at.action_types)),
+        actionTypes: at.action_types.map(mapActionType),
+        requests: inbox.requests.map(mapRequest),
+      }));
     }
 
     loadAll().catch((err) => console.error('fleetwrit: initial load failed', err));

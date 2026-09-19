@@ -247,9 +247,14 @@ class Store:
     def ack(self, rid: str) -> None:
         with _LOCK, self._cx() as c:
             d = c.execute("SELECT consumed_at FROM decisions WHERE request_id=?", (rid,)).fetchone()
-            if d and not d["consumed_at"]:
-                c.execute("UPDATE decisions SET consumed_at=? WHERE request_id=?", (_now(), rid))
-                self.append_ledger("agent", "decision.consumed", {}, {"request": rid})
+            if not d:
+                return  # nothing decided to consume (e.g. expired/cancelled) — no-op
+            if d["consumed_at"]:
+                # exactly-once: a retry that reaches an already-consumed decision
+                # must fail, never deliver the same approval for a second run.
+                raise ValueError(f"decision for {rid} already consumed")
+            c.execute("UPDATE decisions SET consumed_at=? WHERE request_id=?", (_now(), rid))
+            self.append_ledger("agent", "decision.consumed", {}, {"request": rid})
 
     def cancel(self, rid: str) -> None:
         with _LOCK, self._cx() as c:

@@ -90,7 +90,15 @@ export function Inbox() {
             <span role="cell" className="table__go" aria-hidden><IconArrowRight size={16} /></span>
           </button>
         ))}
-        {rows.length === 0 && (
+        {rows.length === 0 && pending.length === 0 && (
+          <div className="empty">
+            No pending requests yet.
+            <span className="empty__hint mono">
+              Run an agent against this server, or start with <code>fleetwrit dev --demo</code>.
+            </span>
+          </div>
+        )}
+        {rows.length === 0 && pending.length > 0 && (
           <div className="empty">No pending requests in this queue.</div>
         )}
       </div>

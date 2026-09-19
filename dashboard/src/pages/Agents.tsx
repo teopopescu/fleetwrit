@@ -14,6 +14,10 @@ export function Agents() {
         lede="Every registered agent, its runtime integration, and the action types it uses."
       />
 
+      <p className="pagehead__lede">
+        Disabling an agent blocks its new requests — the server enforces it.
+      </p>
+
       <div className="table table--agents" role="table" aria-label="Agents">
         <div className="table__head" role="row">
           <span role="columnheader" className="mono">Agent</span>
@@ -22,7 +26,7 @@ export function Agents() {
           <span role="columnheader" className="mono">SDK</span>
           <span role="columnheader" className="mono">Last seen</span>
           <span role="columnheader" className="mono">Action types</span>
-          <span role="columnheader" className="mono col-right">30d</span>
+          <span role="columnheader" className="mono col-right">Reqs · 30d</span>
           <span role="columnheader" className="mono col-right">State</span>
         </div>
         {agents.map((a) => (
@@ -50,6 +54,7 @@ export function Agents() {
                 role="switch"
                 aria-checked={!a.disabled}
                 aria-label={`${a.disabled ? 'Enable' : 'Disable'} ${a.id}`}
+                title="Disabling an agent blocks its new requests (enforced by the server)."
                 onClick={() => toggleAgent(a.id)}
               >
                 <span className="toggle__track"><span className="toggle__thumb" /></span>
@@ -58,6 +63,14 @@ export function Agents() {
             </span>
           </div>
         ))}
+        {agents.length === 0 && (
+          <div className="empty">
+            No agents registered yet.
+            <span className="empty__hint mono">
+              Run an agent against this server, or start with <code>fleetwrit dev --demo</code>.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

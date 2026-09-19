@@ -1,68 +1,85 @@
+import { useEffect, useState } from 'react';
+import { useStore } from '../store/store';
+import { FLEETWRIT_URL } from '../data/api';
 import { PageHead, SectionHead } from '../components/PageHead';
 import { Stamp } from '../components/Stamp';
 
+// Roadmap only — none of these are wired up on this server yet.
+const PLANNED = [
+  { title: 'IdP sign-in', detail: 'Okta / Microsoft Entra' },
+  { title: 'Notifications', detail: 'Slack / email / webhook' },
+  { title: 'Policy engines', detail: 'OPA / Cedar' },
+  { title: 'Routing & queues', detail: 'per-queue reviewers' },
+  { title: 'SCIM', detail: 'user & group provisioning' },
+];
+
 export function Settings() {
+  const { isLive, endpointLabel } = useStore();
+  const [kid, setKid] = useState<string>('—');
+
+  // Live only: read the real signing key id from the server's JWKS.
+  useEffect(() => {
+    if (!isLive) return;
+    let mounted = true;
+    fetch(`${FLEETWRIT_URL ?? ''}/.well-known/jwks.json`, {
+      headers: { accept: 'application/json' },
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((j: { keys?: { kid?: string }[] }) => {
+        if (mounted) setKid(j.keys?.[0]?.kid ?? '—');
+      })
+      .catch(() => {
+        if (mounted) setKid('—');
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [isLive]);
+
+  const endpoint = isLive ? FLEETWRIT_URL || endpointLabel : 'Demo data · auth off';
+
   return (
     <div className="page">
       <PageHead
         index="05"
-        file="settings.stub"
+        file="settings"
         title="Settings"
-        lede="Read-only in demo mode. Shows the shape of a configured workspace."
+        lede="What this server actually has configured. Identity, notifications and policy engines are on the roadmap."
       />
 
-      <div className="grid-2">
-        <section className="panel">
-          <SectionHead title="Identity" />
-          <dl className="args">
-            <div className="args__row">
-              <dt className="args__key mono">IdP connection</dt>
-              <dd className="args__val">
-                Okta <span className="mono">(demo)</span>
-              </dd>
-            </div>
-            <div className="args__row">
-              <dt className="args__key mono">Auth</dt>
-              <dd className="args__val"><Stamp variant="stamp--muted">off · demo</Stamp></dd>
-            </div>
-            <div className="args__row">
-              <dt className="args__key mono">Signing key</dt>
-              <dd className="args__val mono">key_fw_2026_a · ed25519</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="panel">
-          <SectionHead title="Notifications" />
-          <dl className="args">
-            <div className="args__row">
-              <dt className="args__key mono">Slack webhook</dt>
-              <dd className="args__val mono">#fleetwrit-approvals</dd>
-            </div>
-            <div className="args__row">
-              <dt className="args__key mono">Email digest</dt>
-              <dd className="args__val">Hourly + per-request</dd>
-            </div>
-            <div className="args__row">
-              <dt className="args__key mono">OPA bundle</dt>
-              <dd className="args__val mono">rev 41 · <Stamp variant="stamp--green">synced</Stamp></dd>
-            </div>
-          </dl>
-        </section>
-      </div>
+      <section className="panel">
+        <SectionHead title="This server" />
+        <dl className="args">
+          <div className="args__row">
+            <dt className="args__key mono">Endpoint</dt>
+            <dd className="args__val mono">{endpoint}</dd>
+          </div>
+          <div className="args__row">
+            <dt className="args__key mono">Auth</dt>
+            <dd className="args__val">off · local (dev)</dd>
+          </div>
+          <div className="args__row">
+            <dt className="args__key mono">Receipts</dt>
+            <dd className="args__val">
+              Ed25519 (EdDSA) · JWKS at{' '}
+              <span className="mono">/.well-known/jwks.json</span>
+            </dd>
+          </div>
+          <div className="args__row">
+            <dt className="args__key mono">Key id</dt>
+            <dd className="args__val mono">{kid}</dd>
+          </div>
+        </dl>
+      </section>
 
       <section className="panel">
-        <SectionHead title="Queues" />
+        <SectionHead title="Planned" note="roadmap · not configured" />
         <ul className="reg">
-          {[
-            { q: 'finance-ops', reviewers: 'support@acme.com, marcus@acme.com' },
-            { q: 'sre-oncall', reviewers: 'platform@acme.com, dana@acme.com' },
-            { q: 'privacy', reviewers: 'privacy@acme.com' },
-          ].map((r) => (
-            <li key={r.q} className="reg__row reg__row--3">
-              <span className="reg__key mono">{r.q}</span>
-              <span className="reg__sub mono">{r.reviewers}</span>
-              <Stamp variant="stamp--accent">routed</Stamp>
+          {PLANNED.map((p) => (
+            <li key={p.title} className="reg__row reg__row--3">
+              <span className="reg__key">{p.title}</span>
+              <span className="reg__sub mono">{p.detail}</span>
+              <Stamp variant="stamp--muted">planned</Stamp>
             </li>
           ))}
         </ul>

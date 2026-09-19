@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import {
   IconOverview,
@@ -27,12 +27,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <div className="sidebar__brand">
+        <Link to="/" className="sidebar__brand" aria-label="Fleetwrit — go to Overview">
           <span className="sidebar__mark" aria-hidden>
             <IconMark size={20} />
           </span>
           <span className="sidebar__wordmark">Fleetwrit</span>
-        </div>
+        </Link>
         <nav className="nav" aria-label="Primary">
           {NAV.map(({ to, label, end, Icon }) => (
             <NavLink

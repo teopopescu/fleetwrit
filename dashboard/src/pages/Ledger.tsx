@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
-import { useStore } from '../store/store';
+import { Fragment, useMemo, useState } from 'react';
+import { useStore, type VerifyResult } from '../store/store';
 import { PageHead } from '../components/PageHead';
+import { Stamp } from '../components/Stamp';
 import { IconCheck } from '../components/Icons';
 import { GENESIS_HASH } from '../data/seed';
 
@@ -18,7 +19,8 @@ function verifyChain(
 export function Ledger() {
   const { ledger, verifyLedger, isLive, overview } = useStore();
   const [query, setQuery] = useState('');
-  const [verified, setVerified] = useState<null | boolean>(null);
+  const [verified, setVerified] = useState<VerifyResult | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
 
   // In live mode the /v1/ledger window is truncated to the latest events, so a
   // local genesis-based check would report "broken" once the chain outgrows it.
@@ -46,7 +48,7 @@ export function Ledger() {
         index="04"
         file="ledger.chain"
         title="Ledger"
-        lede="Append-only record of every event. Each entry chains to the previous by hash."
+        lede="Append-only record of every event. Each entry chains to the previous by hash. Select a row for its full detail."
         actions={
           <div className="ledger-actions">
             <span className={'chain-badge' + (chainIntact ? '' : ' is-broken')}>
@@ -57,7 +59,7 @@ export function Ledger() {
               type="button"
               className="btn btn--ghost"
               onClick={() => {
-                verifyLedger().then((r) => setVerified(r.ok));
+                verifyLedger().then(setVerified);
               }}
             >
               Verify chain
@@ -67,11 +69,12 @@ export function Ledger() {
       />
 
       {verified !== null && (
-        <div className={'verify-result mono' + (verified ? '' : ' is-broken')}>
-          <IconCheck size={15} />
-          {verified
-            ? `Verified ${ledger.length} events · every prev_hash matches · chain intact`
-            : 'Verification failed · a prev_hash does not match'}
+        <div>
+          <Stamp variant={verified.ok ? 'stamp--green' : 'stamp--red'}>
+            {verified.ok
+              ? `chain intact · ${verified.events ?? ledger.length} events`
+              : `broken at seq ${verified.brokenSeq ?? '?'}`}
+          </Stamp>
         </div>
       )}
 
@@ -95,17 +98,72 @@ export function Ledger() {
           <span role="columnheader" className="mono">Request</span>
           <span role="columnheader" className="mono">Payload hash</span>
         </div>
-        {rows.map((e) => (
-          <div key={e.seq} className="table__row" role="row">
-            <span role="cell" className="mono tnum col-right">{e.seq}</span>
-            <span role="cell" className="mono tnum">{e.ts.replace('T', ' ').replace('Z', 'Z')}</span>
-            <span role="cell" className="mono">{e.actor}</span>
-            <span role="cell" className="mono">{e.event}</span>
-            <span role="cell" className="mono">{e.requestId ?? '—'}</span>
-            <span role="cell" className="mono cell-wrap">{e.payloadHash}</span>
+        {rows.map((e) => {
+          const isOpen = open === e.seq;
+          return (
+            <Fragment key={e.seq}>
+              <button
+                type="button"
+                className="table__row table__row--btn"
+                role="row"
+                aria-expanded={isOpen}
+                onClick={() => setOpen(isOpen ? null : e.seq)}
+              >
+                <span role="cell" className="mono tnum col-right">{e.seq}</span>
+                <span role="cell" className="mono tnum">{e.ts.replace('T', ' ')}</span>
+                <span role="cell" className="mono">{e.actor}</span>
+                <span role="cell" className="mono">{e.event}</span>
+                <span role="cell" className="mono">{e.requestId ?? '—'}</span>
+                <span role="cell" className="mono cell-wrap">{e.payloadHash}</span>
+              </button>
+              {isOpen && (
+                <div className="table__detail">
+                  <dl className="args">
+                    <div className="args__row">
+                      <dt className="args__key mono">Seq</dt>
+                      <dd className="args__val mono">{e.seq}</dd>
+                    </div>
+                    <div className="args__row">
+                      <dt className="args__key mono">Timestamp</dt>
+                      <dd className="args__val mono">{e.ts}</dd>
+                    </div>
+                    <div className="args__row">
+                      <dt className="args__key mono">Actor</dt>
+                      <dd className="args__val mono">{e.actor}</dd>
+                    </div>
+                    <div className="args__row">
+                      <dt className="args__key mono">Event</dt>
+                      <dd className="args__val mono">{e.event}</dd>
+                    </div>
+                    <div className="args__row">
+                      <dt className="args__key mono">Request</dt>
+                      <dd className="args__val mono">{e.requestId ?? '—'}</dd>
+                    </div>
+                    <div className="args__row">
+                      <dt className="args__key mono">Payload hash</dt>
+                      <dd className="args__val mono">{e.payloadHash}</dd>
+                    </div>
+                    <div className="args__row">
+                      <dt className="args__key mono">Prev hash</dt>
+                      <dd className="args__val mono">{e.prevHash}</dd>
+                    </div>
+                  </dl>
+                </div>
+              )}
+            </Fragment>
+          );
+        })}
+        {rows.length === 0 && ledger.length === 0 && (
+          <div className="empty">
+            No ledger events yet.
+            <span className="empty__hint mono">
+              Run an agent against this server, or start with <code>fleetwrit dev --demo</code>.
+            </span>
           </div>
-        ))}
-        {rows.length === 0 && <div className="empty">No events match that search.</div>}
+        )}
+        {rows.length === 0 && ledger.length > 0 && (
+          <div className="empty">No events match that search.</div>
+        )}
       </div>
     </div>
   );

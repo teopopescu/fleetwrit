@@ -270,6 +270,12 @@ img, svg { max-width: 100%; display: block; }
 .cell-flag { color: var(--stamp-amber); }
 .table__row--flag { background: color-mix(in srgb, var(--stamp-amber) 6%, var(--card)); }
 .empty { padding: 1.5rem 1.1rem; color: var(--muted); font-size: 0.9rem; }
+.empty__hint { display: block; margin-top: 0.35rem; color: var(--muted); font-size: 0.8rem; }
+.empty__hint code { font-family: var(--mono); color: var(--ink); background: var(--bg-soft); border-radius: 2px; padding: 0.05rem 0.3rem; }
+
+/* Expandable row detail (Catalog, Ledger) */
+.table__detail { padding: 0.9rem 1.1rem; border-top: 1px solid var(--line); background: var(--bg-soft); }
+.table__row--btn[aria-expanded='true'] { background: var(--bg-soft); }
 
 .table--agents .table__head, .table--agents .table__row {
   grid-template-columns: 9rem 4.5rem 8rem 6rem 5.5rem 1fr 3rem 6.5rem;

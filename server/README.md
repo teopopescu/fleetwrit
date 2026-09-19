@@ -1,5 +1,7 @@
 # fleetwrit-server
 
+[![test-server](https://github.com/teopopescu/fleetwrit/actions/workflows/test-server.yml/badge.svg)](https://github.com/teopopescu/fleetwrit/actions/workflows/test-server.yml)
+
 The local Fleetwrit server: a FastAPI + SQLite service that receives agent
 requests, records decisions and a hash-chained ledger, signs receipts, and
 serves the ops dashboard (bundled in). It's the backend the

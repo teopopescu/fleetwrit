@@ -71,9 +71,10 @@ class Store:
         with _LOCK, self._cx() as c:
             row = c.execute("SELECT hash FROM ledger ORDER BY seq DESC LIMIT 1").fetchone()
             prev = row["hash"] if row else "genesis"
+            ts = _now()
             ph = _sha(_canon(payload))
-            digest = _sha(prev + "|" + ph + "|" + _canon(refs) + "|" + event)
-            c.execute("INSERT INTO ledger(ts,actor,event,payload_hash,refs,prev_hash,hash) VALUES(?,?,?,?,?,?,?)", (_now(), actor, event, ph, _canon(refs), prev, digest))
+            digest = _sha("|".join([prev, ts, actor, event, ph, _canon(refs)]))
+            c.execute("INSERT INTO ledger(ts,actor,event,payload_hash,refs,prev_hash,hash) VALUES(?,?,?,?,?,?,?)", (ts, actor, event, ph, _canon(refs), prev, digest))
 
     def ledger(self, limit: int = 200) -> list[dict[str, Any]]:
         with _LOCK, self._cx() as c:
@@ -85,7 +86,10 @@ class Store:
             rows = c.execute("SELECT * FROM ledger ORDER BY seq ASC").fetchall()
         prev = "genesis"
         for r in rows:
-            if _sha(prev + "|" + r["payload_hash"] + "|" + r["refs"] + "|" + r["event"]) != r["hash"]:
+            if r["prev_hash"] != prev:
+                return {"ok": False, "broken_seq": r["seq"]}
+            digest = _sha("|".join([prev, r["ts"], r["actor"], r["event"], r["payload_hash"], r["refs"]]))
+            if digest != r["hash"]:
                 return {"ok": False, "broken_seq": r["seq"]}
             prev = r["hash"]
         return {"ok": True, "events": len(rows)}
@@ -170,7 +174,12 @@ class Store:
         with _LOCK, self._cx() as c:
             rows = c.execute("SELECT id FROM requests WHERE state='pending' ORDER BY created_at ASC").fetchall()
         order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-        reqs = [x for x in (self.get_request(r["id"]) for r in rows) if x]
+        reqs = []
+        for row in rows:
+            self._maybe_expire(row["id"])
+            req = self.get_request(row["id"])
+            if req and req["state"] == "pending":
+                reqs.append(req)
         reqs.sort(key=lambda r: (order.get(r["risk"], 2), r["expires_at"] or ""))
         return reqs
 
@@ -181,7 +190,22 @@ class Store:
                 c.execute("UPDATE requests SET viewed_at=? WHERE id=?", (_now(), rid))
                 self.append_ledger(who, "request.viewed", {}, {"request": rid})
 
+    def _maybe_expire(self, rid: str) -> None:
+        with _LOCK, self._cx() as c:
+            r = c.execute("SELECT state, expires_at FROM requests WHERE id=?", (rid,)).fetchone()
+            if not r or r["state"] != "pending" or not r["expires_at"]:
+                return
+            try:
+                exp = datetime.strptime(r["expires_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            except ValueError:
+                return
+            if datetime.now(timezone.utc) <= exp:
+                return
+            c.execute("UPDATE requests SET state='expired' WHERE id=?", (rid,))
+        self.append_ledger("system", "request.expired", {}, {"request": rid})
+
     def decision(self, rid: str) -> dict[str, Any] | None:
+        self._maybe_expire(rid)
         with _LOCK, self._cx() as c:
             r = c.execute("SELECT * FROM requests WHERE id=?", (rid,)).fetchone()
             d = c.execute("SELECT * FROM decisions WHERE request_id=?", (rid,)).fetchone()
@@ -200,11 +224,12 @@ class Store:
         }
 
     def decide(self, rid: str, outcome: str, edits: dict[str, Any] | None, reason: str | None, reviewer: dict[str, Any]) -> dict[str, Any]:
+        self._maybe_expire(rid)
         req = self.get_request(rid)
         if not req:
             raise KeyError(rid)
         if req["state"] != "pending":
-            raise ValueError("already decided")
+            raise ValueError(f"request is {req['state']}, not pending")
         self.mark_viewed(rid, reviewer.get("email", "reviewer"))
         args = dict(req["args"])
         editable = set(req["editable"])

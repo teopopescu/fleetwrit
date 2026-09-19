@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fleetwrit-server"
-version = "0.0.1"
+version = "0.0.2"
 description = "Fleetwrit v0 local server (fleetwrit dev): FastAPI + SQLite."
 readme = "README.md"
 license = "Apache-2.0"

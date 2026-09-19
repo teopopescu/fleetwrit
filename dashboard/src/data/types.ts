@@ -1,6 +1,8 @@
 export type Risk = 'critical' | 'high' | 'medium' | 'low';
 
-export type Environment = 'prod' | 'staging';
+// The server may report any environment string (e.g. "dev", "prod", "staging").
+// The known values are listed for autocompletion; any other value survives too.
+export type Environment = 'prod' | 'staging' | 'dev' | (string & {});
 
 export type RequestStatus =
   | 'pending'
@@ -9,7 +11,7 @@ export type RequestStatus =
   | 'rejected'
   | 'expired';
 
-export type ArgHint = 'money' | 'version' | 'count' | 'text' | 'id';
+export type ArgHint = 'money' | 'version' | 'count' | 'text' | 'id' | 'json';
 
 export interface ActionArg {
   key: string;
@@ -18,6 +20,14 @@ export interface ActionArg {
   hint: ArgHint;
   /** for version bumps: the target value, e.g. v41 -> v42 */
   to?: string | number;
+  /**
+   * The underlying, unformatted argument value. Kept separate from `value`
+   * (which may carry presentational formatting such as a "v" prefix or a
+   * pretty-printed JSON string) so reviewer edits serialize with the real type.
+   */
+  raw?: unknown;
+  /** ISO currency code for money args, from the display hint's currency_field sibling. */
+  currency?: string;
 }
 
 export interface Agent {
@@ -77,6 +87,13 @@ export interface AgentRequest {
   policy: string;
   contextTicket: string;
   provenance: Provenance;
+  /**
+   * Safeguard metadata captured on the request snapshot at creation time.
+   * Used in preference to the live catalog so re-registering an action type
+   * while a request is pending cannot change its confirm/edit affordances.
+   */
+  reversible?: boolean;
+  editable?: string[];
   /** decision fields, present once decided */
   reason?: string;
   edits?: Record<string, string | number>;

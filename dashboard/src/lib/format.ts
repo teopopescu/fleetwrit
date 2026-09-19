@@ -1,9 +1,17 @@
 import type { Risk } from '../data/types';
 
-export function money(value: number | string, currency = 'GBP'): string {
+/** A currency symbol for known codes, else the upper-cased code itself. */
+export function currencySymbol(currency: string | undefined = 'GBP'): string {
+  const code = (currency || 'GBP').toUpperCase();
+  return code === 'GBP' ? '£' : code === 'USD' ? '$' : code === 'EUR' ? '€' : code;
+}
+
+export function money(value: number | string, currency: string | undefined = 'GBP'): string {
   const n = typeof value === 'string' ? Number(value) : value;
-  const symbol = currency === 'GBP' ? '£' : currency === 'USD' ? '$' : '';
-  return `${symbol}${n.toLocaleString('en-GB')}`;
+  const sym = currencySymbol(currency);
+  // Single-char symbols hug the number; multi-char codes get a trailing space.
+  const prefix = sym.length === 1 ? sym : `${sym} `;
+  return `${prefix}${n.toLocaleString('en-GB')}`;
 }
 
 export function riskStampClass(risk: Risk): string {

@@ -226,11 +226,12 @@ function LiveProvider({ children }: { children: ReactNode }) {
       // Refresh the catalog alongside the inbox: an agent can register a new
       // action type after mount, and LiveRequestDetail needs its definition to
       // render (otherwise the request is stuck on "Loading request…").
-      const [ov, inbox, ag, at] = await Promise.all([
+      const [ov, inbox, ag, at, led] = await Promise.all([
         fetchOverview(),
         fetchInbox(),
         fetchAgents(),
         fetchActionTypes(),
+        fetchLedger(),
       ]);
       if (!mounted) return;
       setOverview(ov);
@@ -239,6 +240,8 @@ function LiveProvider({ children }: { children: ReactNode }) {
         agents: ag.agents.map((a) => mapAgent(a, inbox.requests, at.action_types)),
         actionTypes: at.action_types.map(mapActionType),
         requests: inbox.requests.map(mapRequest),
+        // Refresh the ledger too so decisions made elsewhere appear without a reload.
+        ledger: mapLedgerList(led.events),
       }));
     }
 
@@ -263,8 +266,16 @@ function LiveProvider({ children }: { children: ReactNode }) {
         edits = {};
         for (const [k, v] of Object.entries(input.edits)) {
           const arg = req?.args.find((a) => a.key === k);
-          // Money fields render major units in the UI; the server wants minor.
-          edits[k] = arg?.hint === 'money' ? Number(v) * 100 : v;
+          if (arg?.hint === 'money') {
+            // Money fields render major units in the UI; the server wants minor.
+            edits[k] = Number(v) * 100;
+          } else if (typeof arg?.raw === 'number') {
+            // Numeric fields must stay numbers on the wire, and any presentational
+            // prefix (e.g. the "v" on a version) must never reach an int field.
+            edits[k] = Number(String(v).replace(/[^0-9.-]/g, ''));
+          } else {
+            edits[k] = v;
+          }
         }
       }
       await decideRequest(input.requestId, { outcome, edits, reason: input.reason });

@@ -16,11 +16,16 @@ function verifyChain(
 }
 
 export function Ledger() {
-  const { ledger, verifyLedger } = useStore();
+  const { ledger, verifyLedger, isLive, overview } = useStore();
   const [query, setQuery] = useState('');
   const [verified, setVerified] = useState<null | boolean>(null);
 
-  const chain = useMemo(() => verifyChain(ledger), [ledger]);
+  // In live mode the /v1/ledger window is truncated to the latest events, so a
+  // local genesis-based check would report "broken" once the chain outgrows it.
+  // Trust the server's own verification (overview.chain) there; keep the local
+  // hash-chain check for demo/seed mode where the full chain is in memory.
+  const localChain = useMemo(() => verifyChain(ledger), [ledger]);
+  const chainIntact = isLive ? overview?.chain?.ok ?? true : localChain.intact;
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -44,9 +49,9 @@ export function Ledger() {
         lede="Append-only record of every event. Each entry chains to the previous by hash."
         actions={
           <div className="ledger-actions">
-            <span className={'chain-badge' + (chain.intact ? '' : ' is-broken')}>
+            <span className={'chain-badge' + (chainIntact ? '' : ' is-broken')}>
               <IconCheck size={15} />
-              <span className="mono">{chain.intact ? 'Chain intact' : 'Chain broken'}</span>
+              <span className="mono">{chainIntact ? 'Chain intact' : 'Chain broken'}</span>
             </span>
             <button
               type="button"

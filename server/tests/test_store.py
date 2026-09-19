@@ -78,6 +78,35 @@ def test_double_ack_rejected(tmp_path) -> None:
         store.ack(rid)  # exactly-once: second consume rejected
 
 
+def _input_payload(idem: str) -> dict:
+    p = _payload(idem, _iso(datetime.now(timezone.utc) + timedelta(hours=1)))
+    p["kind"] = "input"
+    p["action"] = {"type": "input", "version": "0", "tool": None, "args": {"prompt": "n?"}, "reversible": True}
+    return p
+
+
+def test_input_answer_persisted_with_answered_outcome(tmp_path) -> None:
+    store = Store(str(tmp_path / "input.db"))
+    rid = store.create_request(_input_payload("in1"))["id"]
+    store.decide(rid, "answered", None, None, {"email": "r@x.com"}, value=42)
+    d = store.decision(rid)
+    assert d["outcome"] == "answered"
+    assert d["value"] == 42  # type + value preserved, not coerced to a string or nulled
+
+
+def test_invalid_expires_at_rejected(tmp_path) -> None:
+    store = Store(str(tmp_path / "bad.db"))
+    with pytest.raises(ValueError):
+        store.create_request(_payload("bad1", "not-a-timestamp"))
+
+
+def test_expiry_parses_explicit_offset(tmp_path) -> None:
+    store = Store(str(tmp_path / "offset.db"))
+    past = (datetime.now(timezone.utc) - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+    rid = store.create_request(_payload("off1", past))["id"]
+    assert store.decision(rid)["outcome"] == "expired"
+
+
 def test_seed_demo_completes_without_expiring_history(tmp_path) -> None:
     # seed_demo decides historical requests; expiry enforcement must not reject
     # them on a fresh database (regression: server failed to start).

@@ -252,25 +252,56 @@ function contextTicket(ctx: Record<string, unknown>): string {
   return first != null ? String(first) : '—';
 }
 
+// Resolve the currency for a money arg from the sibling arg named by the
+// display hint's `currency_field` (e.g. amount -> currency = "usd").
+function currencyFor(
+  key: string,
+  display: Record<string, DisplayHint>,
+  args: Record<string, unknown>,
+): string | undefined {
+  const field = display?.[key]?.currency_field;
+  if (!field) return undefined;
+  const cur = args[field];
+  return cur != null ? String(cur) : undefined;
+}
+
 // Server money values are minor units (pence); the UI renders major units.
-function mapArg(key: string, raw: unknown, display: Record<string, DisplayHint>): ActionArg {
+function mapArg(
+  key: string,
+  raw: unknown,
+  display: Record<string, DisplayHint>,
+  args: Record<string, unknown>,
+): ActionArg {
   const label = humanize(key);
   if (isMoneyKey(key, display)) {
     const n = typeof raw === 'number' ? raw : Number(raw);
-    return { key, label, value: Number.isFinite(n) ? n / 100 : String(raw), hint: 'money' };
+    const major = Number.isFinite(n) ? n / 100 : raw;
+    return {
+      key,
+      label,
+      value: typeof major === 'number' ? major : String(raw),
+      hint: 'money',
+      raw: major,
+      currency: currencyFor(key, display, args),
+    };
   }
   if (key === 'version') {
-    return { key, label, value: `v${String(raw)}`, hint: 'text' };
+    // "v41" is presentational; the raw value keeps the underlying type.
+    return { key, label, value: `v${String(raw)}`, hint: 'text', raw };
+  }
+  // Structured values render as readable JSON but keep the real nested content.
+  if (raw !== null && typeof raw === 'object') {
+    return { key, label, value: JSON.stringify(raw, null, 2), hint: 'json', raw };
   }
   let hint: ArgHint = 'text';
   if (key === 'count' || key === 'records') hint = 'count';
   else if (key === 'charge' || key === 'supplier' || key === 'id') hint = 'id';
   const value = typeof raw === 'number' ? raw : String(raw);
-  return { key, label, value, hint };
+  return { key, label, value, hint, raw };
 }
 
 function mapArgs(args: Record<string, unknown>, display: Record<string, DisplayHint>): ActionArg[] {
-  return Object.entries(args).map(([key, raw]) => mapArg(key, raw, display));
+  return Object.entries(args).map(([key, raw]) => mapArg(key, raw, display, args));
 }
 
 function mapEdits(req: SrvReq, decision: SrvDecision): Record<string, string | number> | undefined {
@@ -299,7 +330,9 @@ export function mapAgent(a: SrvAgent, requests: SrvReq[], actionTypes: SrvAction
   const declared = Array.from(new Set(mine.map((r) => r.type).filter((t) => !undeclaredSet.has(t))));
   const undeclaredType = mine.map((r) => r.type).find((t) => undeclaredSet.has(t));
 
-  const environment: Environment = a.environment === 'staging' ? 'staging' : 'prod';
+  // Preserve the actual environment reported by the server (e.g. "dev") rather
+  // than collapsing everything that isn't "staging" to "prod".
+  const environment: Environment = a.environment || 'prod';
   const agent: Agent = {
     id: a.agent_id,
     environment,
@@ -338,6 +371,8 @@ export function mapRequest(r: SrvReq): AgentRequest {
     title: r.title,
     summary: r.summary ?? '',
     args: mapArgs(r.args ?? {}, r.display ?? {}),
+    reversible: r.reversible,
+    editable: r.editable ?? [],
     risk: asRisk(r.risk),
     queue: r.queue ?? '—',
     status: mapStatus(r.state),

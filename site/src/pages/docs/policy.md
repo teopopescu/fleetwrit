@@ -171,7 +171,7 @@ else:
 Cedar decides *whether* to ask. It cannot capture the decision, prove who made it, or hold the agent while it waits. You could approximate that with an `if amount > 100000` check that posts to Slack and logs a row — but you would then be rebuilding, and mostly missing:
 
 - **Proof, not a flag.** A boolean set from a Slack reaction proves nothing to an auditor; the receipt is signed and tied to an IdP identity and the exact fingerprint.
-- **Durable, exactly-once resume.** A wait loop dies on restart or fires the refund twice; Fleetwrit re-attaches by idempotency key and accepts one terminal decision.
+- **Durable resume on one decision.** A hand-rolled wait loop dies on restart or fires the refund twice; Fleetwrit re-attaches by idempotency key and accepts at most one terminal decision, delivered and consumed once. (It can't stop *your* downstream call from repeating after a crash — pass the request id as the downstream idempotency key.)
 - **Safe edits.** `decision.authorize()` refuses to run anything but the signed £500 action.
 - **Segregation of duties.** A log in the agent team's own database is the record auditors reject; Fleetwrit's [hash-chained ledger](/docs/security) lives outside the system it governs.
 

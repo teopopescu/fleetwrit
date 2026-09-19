@@ -8,8 +8,7 @@ COPY server /app/server
 RUN pip install --no-cache-dir ./fleetwrit-python ./server \
     && mkdir -p /data
 
-ENV FLEETWRIT_DB=/data/fleetwrit-dev.db \
-    FLEETWRIT_SEED=1
+ENV FLEETWRIT_DB=/data/fleetwrit-dev.db
 EXPOSE 4100
 
 CMD ["uvicorn", "fleetwrit_server.app:app", "--host", "0.0.0.0", "--port", "4100"]

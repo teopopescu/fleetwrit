@@ -30,7 +30,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if os.getenv("FLEETWRIT_SEED", "1") == "1":
+# Start empty by default — a local dev server is for your own data. Set
+# FLEETWRIT_SEED=1 (or `fleetwrit dev --demo`) to load the sample agents/requests.
+if os.getenv("FLEETWRIT_SEED", "0") == "1":
     seed_demo(store)
 
 

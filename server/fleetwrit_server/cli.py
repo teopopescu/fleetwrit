@@ -9,10 +9,23 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
 from pathlib import Path
+
+
+def _free_port(preferred: int, host: str = "127.0.0.1", tries: int = 20) -> int:
+    """Return the first bindable port at or after ``preferred`` (up to ``tries``)."""
+    for port in range(preferred, preferred + tries):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+            try:
+                probe.bind((host, port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError(f"no free port in {preferred}..{preferred + tries - 1}")
 
 
 def _run_server_only(port: int) -> None:
@@ -35,12 +48,17 @@ def run_dev(
     port: int = 4100,
     dashboard_port: int = 5174,
     dashboard: bool = True,
-    seed: bool = True,
+    seed: bool = False,
     path: str | None = None,
 ) -> int:
     """Start the server, and (if found) the dashboard, then wait for Ctrl-C."""
     env = {**os.environ, "FLEETWRIT_SEED": "1" if seed else "0"}
     procs: list[subprocess.Popen] = []
+
+    resolved = _free_port(port)
+    if resolved != port:
+        print(f"· port {port} is busy — using {resolved} instead", flush=True)
+        port = resolved
 
     server = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "fleetwrit_server.app:app",
@@ -66,6 +84,7 @@ def run_dev(
             if not (dash_dir / "node_modules").is_dir():
                 print("· installing dashboard deps (first run)…", flush=True)
                 subprocess.run([npm, "install"], cwd=dash_dir, check=False)
+            dashboard_port = _free_port(dashboard_port)
             dash_env = {**env, "VITE_FLEETWRIT_URL": f"http://localhost:{port}"}
             procs.append(subprocess.Popen(
                 [npm, "run", "dev", "--", "--port", str(dashboard_port), "--strictPort"],
@@ -102,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
     dev.add_argument("--port", type=int, default=int(os.getenv("PORT", "4100")))
     dev.add_argument("--dashboard-port", type=int, default=5174)
     dev.add_argument("--no-dashboard", action="store_true", help="Run the server only")
-    dev.add_argument("--no-seed", action="store_true", help="Skip seeding demo data")
+    dev.add_argument("--demo", action="store_true", help="Load sample agents/requests (default: empty)")
     dev.add_argument("--path", default=None, help="Repo root to find dashboard/ (default: cwd)")
 
     args = parser.parse_args(argv)
@@ -111,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
             port=args.port,
             dashboard_port=args.dashboard_port,
             dashboard=not args.no_dashboard,
-            seed=not args.no_seed,
+            seed=args.demo,
             path=args.path,
         )
     _run_server_only(int(os.getenv("PORT", "4100")))

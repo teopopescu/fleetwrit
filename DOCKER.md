@@ -9,8 +9,10 @@ the server). For local/demo use only — auth is off and data lives in SQLite.
 > pip install -e ./server -e ./fleetwrit-python
 > fleetwrit dev            # or: fleetwrit-server dev
 > ```
-> One command runs the server (`:4100`) and the dashboard (`:5174`). Needs
-> Python + Node. Flags: `--port`, `--dashboard-port`, `--no-dashboard`, `--no-seed`.
+> One command runs the server + dashboard (auto-picks a free port if `:4100` is
+> taken). It starts **empty** — point `FLEETWRIT_URL=http://localhost:4100` at it
+> and develop against it. Flags: `--port`, `--no-dashboard`, `--demo` (load sample
+> data), `--dashboard-port`.
 
 ## Prerequisites
 

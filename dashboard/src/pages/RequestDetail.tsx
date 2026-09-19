@@ -11,7 +11,7 @@ import {
   IconX,
 } from '../components/Icons';
 import { fingerprintOf } from '../data/fingerprint';
-import { money, minsLabel } from '../lib/format';
+import { money, currencySymbol, minsLabel } from '../lib/format';
 import type { ActionArg, ActionType, AgentRequest } from '../data/types';
 
 const REVIEWER = 'you@acme.com';
@@ -33,13 +33,16 @@ function ArgValue({ arg, edited }: { arg: ActionArg; edited?: string | number })
     if (edited !== undefined && String(edited) !== String(arg.value)) {
       return (
         <span className="mono tnum">
-          <span className="strike">{money(arg.value)}</span>
+          <span className="strike">{money(arg.value, arg.currency)}</span>
           <IconArrowRight size={14} className="inline-arrow" />
-          <span className="edited">{money(edited)}</span>
+          <span className="edited">{money(edited, arg.currency)}</span>
         </span>
       );
     }
-    return <span className="mono tnum">{money(arg.value)}</span>;
+    return <span className="mono tnum">{money(arg.value, arg.currency)}</span>;
+  }
+  if (arg.hint === 'json') {
+    return <pre className="mono args__json">{String(arg.value)}</pre>;
   }
   if (arg.hint === 'version') {
     const to = edited !== undefined ? edited : arg.to;
@@ -115,11 +118,23 @@ function LiveRequestDetail() {
   if (!req || !action) return <NotFoundBlock message="Loading request…" />;
 
   const liveDecide = async (input: DecisionInput) => {
-    const result = decide(input);
-    if (result) await result;
-    if (!id) return;
-    const fresh = await fetchRequest(id);
-    setReq(mapRequest(fresh));
+    try {
+      const result = decide(input);
+      if (result) await result;
+    } finally {
+      // Always re-read this request, including after a failure: on a
+      // 409/expired the server state has moved on, so refreshing shows the
+      // reviewer the true terminal state instead of a stuck "pending". Any
+      // original error still propagates out of the finally for submit() to show.
+      if (id) {
+        try {
+          const fresh = await fetchRequest(id);
+          setReq(mapRequest(fresh));
+        } catch {
+          /* leave the current view in place if the re-read also fails */
+        }
+      }
+    }
   };
 
   return (
@@ -145,11 +160,18 @@ function RequestDetailBody({
   const [confirmText, setConfirmText] = useState('');
   const [error, setError] = useState('');
 
-  const needsConfirm = !action.reversible || req.risk === 'critical';
+  // Safeguards read the request's own snapshot, not the live catalog: an action
+  // type re-registered while this request is pending must not change its
+  // reversibility or which args a reviewer may edit. Fall back to the catalog
+  // only when the request carries no snapshot (seed/demo data).
+  const reversible = req.reversible ?? action.reversible;
+  const editable = req.editable ?? action.editable;
+
+  const needsConfirm = !reversible || req.risk === 'critical';
   const phrase = confirmPhrase(action.type);
   const decided = req.status !== 'pending';
 
-  const editableArgs = action.editable
+  const editableArgs = editable
     .map((k) => req.args.find((a) => a.key === k))
     .filter((a): a is ActionArg => Boolean(a));
 
@@ -170,7 +192,9 @@ function RequestDetailBody({
     return String(arg.hint === 'version' ? (arg.to ?? arg.value) : arg.value);
   }
 
-  function submit() {
+  const [submitting, setSubmitting] = useState(false);
+
+  async function submit() {
     setError('');
     if ((mode === 'reject' || mode === 'edit') && reason.trim().length < 4) {
       setError('A reason is required.');
@@ -182,15 +206,30 @@ function RequestDetailBody({
     }
     const verdict =
       mode === 'edit' ? 'approved_with_edit' : mode === 'reject' ? 'rejected' : 'approved';
-    decide({
-      requestId: req.id,
-      verdict,
-      reviewer: REVIEWER,
-      via: VIA,
-      reason: reason.trim() || undefined,
-      edits: mode === 'edit' ? edits : undefined,
-      newFingerprint,
-    });
+    setSubmitting(true);
+    try {
+      // decide() is a promise in live mode; await so a 409/expired/network
+      // failure surfaces here instead of being silently dropped. On success
+      // liveDecide has already refreshed the request into its terminal state.
+      const result = decide({
+        requestId: req.id,
+        verdict,
+        reviewer: REVIEWER,
+        via: VIA,
+        reason: reason.trim() || undefined,
+        edits: mode === 'edit' ? edits : undefined,
+        newFingerprint,
+      });
+      if (result) await result;
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? `Decision failed: ${err.message}`
+          : 'Decision failed. The request may have expired or been decided elsewhere.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -247,7 +286,7 @@ function RequestDetailBody({
                         (mode === 'edit' ? edits[arg.key] : undefined)
                       }
                     />
-                    {action.editable.includes(arg.key) && !decided && (
+                    {editable.includes(arg.key) && !decided && (
                       <span className="args__editable mono">editable</span>
                     )}
                   </dd>
@@ -338,7 +377,7 @@ function RequestDetailBody({
                 >
                   <IconCheck size={16} /> Approve
                 </button>
-                {action.editable.length > 0 && (
+                {editable.length > 0 && (
                   <button
                     type="button"
                     className={'decision__mode' + (mode === 'edit' ? ' is-active' : '')}
@@ -362,7 +401,11 @@ function RequestDetailBody({
                     <label key={arg.key} className="field">
                       <span className="field__label mono">
                         {arg.label}
-                        {arg.hint === 'money' ? ' (£)' : arg.hint === 'version' ? ' (target)' : ''}
+                        {arg.hint === 'money'
+                          ? ` (${currencySymbol(arg.currency)})`
+                          : arg.hint === 'version'
+                            ? ' (target)'
+                            : ''}
                       </span>
                       <input
                         className="field__input mono"
@@ -381,7 +424,7 @@ function RequestDetailBody({
                     </label>
                   ))}
                   <p className="field__hint mono">
-                    Only {action.editable.join(', ')} may be edited on this action type.
+                    Only {editable.join(', ')} may be edited on this action type.
                   </p>
                 </div>
               )}
@@ -436,6 +479,7 @@ function RequestDetailBody({
                     'btn decision__submit' + (mode === 'reject' ? ' btn--reject' : '')
                   }
                   onClick={submit}
+                  disabled={submitting}
                 >
                   {mode === 'reject'
                     ? 'Reject request'

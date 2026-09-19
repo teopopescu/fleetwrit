@@ -40,9 +40,12 @@ async def register(req: Request) -> dict[str, Any]:
 
 
 @app.post("/v1/requests")
-async def create_request(req: Request) -> dict[str, Any]:
+async def create_request(req: Request) -> JSONResponse:
     body = await req.json()
-    return store.create_request(body)
+    try:
+        return JSONResponse(store.create_request(body))
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
 
 
 @app.get("/v1/requests/{rid}/decision")
@@ -101,7 +104,7 @@ async def decide(rid: str, req: Request) -> JSONResponse:
         "name": "You", "issuer": "https://fleetwrit.local",
     }
     try:
-        result = store.decide(rid, body.get("outcome", "approved"), body.get("edits"), body.get("reason"), reviewer)
+        result = store.decide(rid, body.get("outcome", "approved"), body.get("edits"), body.get("reason"), reviewer, body.get("value"), body.get("option"))
     except KeyError:
         return JSONResponse({"error": "not found"}, status_code=404)
     except ValueError as exc:

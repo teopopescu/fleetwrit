@@ -51,8 +51,8 @@ AgentCore gates at the tool gateway, so it covers any framework running on Agent
 
 Every integration ships a contract suite that:
 
-1. pauses, decides, and resumes exactly once;
-2. **kills the agent process mid-wait** and checks the decision still arrives once;
+1. pauses, decides, and resumes on that one terminal decision;
+2. **kills the agent process mid-wait** and checks the decision is delivered and consumed at most once;
 3. exercises the rejection path and the expiry path.
 
 Run them against the oldest supported and the latest framework version:

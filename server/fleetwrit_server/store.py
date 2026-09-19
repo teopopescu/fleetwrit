@@ -32,6 +32,22 @@ def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _parse_ts(value: str) -> datetime | None:
+    """Parse an RFC 3339 timestamp (``Z``, explicit offset, or fractional seconds).
+
+    Returns None if unparseable so callers can decide how to fail, rather than a
+    narrow format silently disabling expiry on otherwise-valid deadlines.
+    """
+    v = value.strip()
+    if v.endswith(("Z", "z")):
+        v = v[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(v)
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
 def _canon(obj: Any) -> str:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
@@ -132,6 +148,9 @@ class Store:
     # --- requests ---
     def create_request(self, payload: dict[str, Any]) -> dict[str, Any]:
         idem = payload["idempotency_key"]
+        expires_at = payload.get("expires_at")
+        if expires_at and _parse_ts(expires_at) is None:
+            raise ValueError(f"invalid expires_at timestamp: {expires_at!r}")
         with _LOCK, self._cx() as c:
             existing = c.execute("SELECT id FROM requests WHERE idempotency_key=?", (idem,)).fetchone()
             if existing:
@@ -195,11 +214,8 @@ class Store:
             r = c.execute("SELECT state, expires_at FROM requests WHERE id=?", (rid,)).fetchone()
             if not r or r["state"] != "pending" or not r["expires_at"]:
                 return
-            try:
-                exp = datetime.strptime(r["expires_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-            except ValueError:
-                return
-            if datetime.now(timezone.utc) <= exp:
+            exp = _parse_ts(r["expires_at"])
+            if exp is None or datetime.now(timezone.utc) <= exp:
                 return
             c.execute("UPDATE requests SET state='expired' WHERE id=?", (rid,))
         self.append_ledger("system", "request.expired", {}, {"request": rid})
@@ -220,10 +236,12 @@ class Store:
             "action": {"type": r["type"], "version": r["action_version"], "tool": r["tool"], "args": json.loads(d["final_args"] or r["args"]), "reversible": bool(r["reversible"])},
             "original_fingerprint": d["original_fingerprint"], "final_fingerprint": d["final_fingerprint"],
             "reason": d["reason"], "reviewer": json.loads(d["reviewer"]) if d["reviewer"] else None,
-            "receipt": d["receipt"], "value": d["value"], "option": d["option"],
+            "receipt": d["receipt"],
+            "value": json.loads(d["value"]) if d["value"] is not None else None,
+            "option": json.loads(d["option"]) if d["option"] is not None else None,
         }
 
-    def decide(self, rid: str, outcome: str, edits: dict[str, Any] | None, reason: str | None, reviewer: dict[str, Any]) -> dict[str, Any]:
+    def decide(self, rid: str, outcome: str, edits: dict[str, Any] | None, reason: str | None, reviewer: dict[str, Any], value: Any = None, option: Any = None) -> dict[str, Any]:
         self._maybe_expire(rid)
         req = self.get_request(rid)
         if not req:
@@ -235,11 +253,21 @@ class Store:
         editable = set(req["editable"])
         applied = {k: v for k, v in (edits or {}).items() if k in editable}
         args.update(applied)
-        final_outcome = "rejected" if outcome == "rejected" else ("approved_with_edits" if applied else "approved")
+        kind = req.get("kind", "approve")
+        if outcome == "rejected":
+            final_outcome = "rejected"
+        elif kind == "input":
+            final_outcome = "answered"
+        elif kind == "choose":
+            final_outcome = "chosen"
+        else:
+            final_outcome = "approved_with_edits" if applied else "approved"
         final_fp = fw_fingerprint(type=req["type"], version=req["action_version"], tool=req["tool"], args=args, agent_id=req["agent_id"], environment=req["environment"])
         receipt = self._sign(rid, final_fp, final_outcome, reviewer) if final_outcome != "rejected" else None
+        val = _canon(value) if value is not None else None
+        opt = _canon(option) if option is not None else None
         with _LOCK, self._cx() as c:
-            c.execute("INSERT OR REPLACE INTO decisions(request_id,outcome,final_args,original_fingerprint,final_fingerprint,reason,reviewer,receipt,decided_at) VALUES(?,?,?,?,?,?,?,?,?)", (rid, final_outcome, _canon(args), req["fingerprint"], final_fp, reason, _canon(reviewer), receipt, _now()))
+            c.execute("INSERT OR REPLACE INTO decisions(request_id,outcome,final_args,original_fingerprint,final_fingerprint,reason,reviewer,receipt,value,option,decided_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)", (rid, final_outcome, _canon(args), req["fingerprint"], final_fp, reason, _canon(reviewer), receipt, val, opt, _now()))
             c.execute("UPDATE requests SET state=? WHERE id=?", (final_outcome, rid))
         self.append_ledger(reviewer.get("email", "reviewer"), "decision.made", {"outcome": final_outcome, "final_fingerprint": final_fp, "edits": applied, "reason": reason}, {"request": rid})
         return self.decision(rid) or {}

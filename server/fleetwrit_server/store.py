@@ -15,7 +15,7 @@ import threading
 import time
 import uuid
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -119,13 +119,19 @@ class Store:
         self.append_ledger(agent["id"], "agent.registered", agent, {"agent": agent["id"]})
 
     def agents(self) -> list[dict[str, Any]]:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
         with _LOCK, self._cx() as c:
             rows = c.execute("SELECT * FROM agents ORDER BY last_seen DESC").fetchall()
-        out = []
-        for r in rows:
-            d = dict(r)
-            d["disabled"] = bool(d["disabled"])
-            out.append(d)
+            out = []
+            for r in rows:
+                d = dict(r)
+                d["disabled"] = bool(d["disabled"])
+                # real 30-day request count for this agent (was an unused column)
+                d["volume30d"] = c.execute(
+                    "SELECT COUNT(*) n FROM requests WHERE agent_id=? AND created_at >= ?",
+                    (d["agent_id"], cutoff),
+                ).fetchone()["n"]
+                out.append(d)
         return out
 
     def action_types(self) -> list[dict[str, Any]]:
@@ -155,6 +161,10 @@ class Store:
             existing = c.execute("SELECT id FROM requests WHERE idempotency_key=?", (idem,)).fetchone()
             if existing:
                 return {"id": existing["id"], "state": "reattached"}
+            # kill-switch: a disabled agent cannot create requests (fail closed)
+            dis = c.execute("SELECT disabled FROM agents WHERE agent_id=?", (payload["agent"]["id"],)).fetchone()
+            if dis and dis["disabled"]:
+                raise ValueError(f"agent {payload['agent']['id']} is disabled")
         action = payload["action"]
         at = self._action_type(action["type"])
         risk = (at or {}).get("risk", "medium")

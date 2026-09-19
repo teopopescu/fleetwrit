@@ -114,3 +114,22 @@ def test_seed_demo_completes_without_expiring_history(tmp_path) -> None:
     seed_demo(store)
     assert store.verify_chain()["ok"] is True
     assert store.overview()["decisions_total"] == 2
+
+
+def test_disabled_agent_cannot_create_request(tmp_path) -> None:
+    store = Store(str(tmp_path / "dis.db"))
+    store.register({"id": "a", "environment": "prod"}, [])
+    store.toggle_agent("a")  # disable the kill-switch
+    future = _iso(datetime.now(timezone.utc) + timedelta(hours=1))
+    with pytest.raises(ValueError):
+        store.create_request(_payload("k-dis", future))
+
+
+def test_agents_volume_counts_real_requests(tmp_path) -> None:
+    store = Store(str(tmp_path / "vol.db"))
+    store.register({"id": "a", "environment": "prod"}, [])
+    future = _iso(datetime.now(timezone.utc) + timedelta(hours=1))
+    store.create_request(_payload("v1", future))
+    store.create_request(_payload("v2", future))
+    agent = next(x for x in store.agents() if x["agent_id"] == "a")
+    assert agent["volume30d"] == 2

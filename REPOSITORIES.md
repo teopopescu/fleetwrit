@@ -72,9 +72,10 @@ Final target: `fleetwrit-protocol`, `fleetwrit-python`, `fleetwrit`,
   `fleetwrit-python`. Do not split repos on principle.
 - Contributions use a DCO sign-off, not a CLA.
 
-## Where the landing page being built now fits
+## Where the landing page lives
 
-The Astro site under `site/` in this workspace is Phase-1 content: it belongs in
-the `fleetwrit` server repo's `site/` folder and is written so it can be lifted
-into a standalone `fleetwrit-site` repo at Phase 3 with no rewrite (its only data
-dependency is `src/data/integrations.json`).
+The Astro landing page + docs now live in their own public repo,
+[`fleetwrit-site`](https://github.com/teopopescu/fleetwrit-site), which deploys to
+GitHub Pages / fleetwrit.dev. It was split out of this repo's `site/` folder
+earlier than the original Phase-3 plan so it can ship on its own cadence and stay
+public without exposing this repo.

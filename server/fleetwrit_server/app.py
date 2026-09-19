@@ -122,6 +122,12 @@ async def agents() -> dict[str, Any]:
     return {"agents": store.agents()}
 
 
+@app.post("/v1/agents/{aid}/toggle")
+async def toggle_agent(aid: str) -> dict[str, Any]:
+    store.toggle_agent(aid)
+    return {"ok": True}
+
+
 @app.get("/v1/action-types")
 async def action_types() -> dict[str, Any]:
     return {"action_types": store.action_types()}

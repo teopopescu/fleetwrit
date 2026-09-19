@@ -50,3 +50,14 @@ def test_bundled_dashboard_served(monkeypatch, tmp_path) -> None:
         spa = client.get("/requests/anything")
         assert spa.status_code == 200
         assert "<title" in spa.text
+
+
+def test_toggle_agent_endpoint(monkeypatch, tmp_path) -> None:
+    app = _load_app(monkeypatch, tmp_path, seed="1")
+    with TestClient(app) as client:
+        agents = client.get("/v1/agents").json()["agents"]
+        aid = agents[0]["agent_id"]
+        assert agents[0]["disabled"] is False
+        assert client.post(f"/v1/agents/{aid}/toggle").status_code == 200
+        after = {a["agent_id"]: a["disabled"] for a in client.get("/v1/agents").json()["agents"]}
+        assert after[aid] is True

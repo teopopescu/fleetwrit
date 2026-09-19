@@ -188,6 +188,9 @@ export const fetchOverview = (): Promise<SrvOverview> => getJson('/v1/overview')
 export const fetchInbox = (): Promise<{ requests: SrvReq[] }> => getJson('/v1/inbox');
 export const fetchRequest = (id: string): Promise<SrvReq> => getJson(`/v1/requests/${id}`);
 export const fetchAgents = (): Promise<{ agents: SrvAgent[] }> => getJson('/v1/agents');
+
+export const toggleAgent = (id: string): Promise<{ ok: boolean }> =>
+  postJson(`/v1/agents/${encodeURIComponent(id)}/toggle`, {});
 export const fetchActionTypes = (): Promise<{ action_types: SrvActionType[] }> =>
   getJson('/v1/action-types');
 export const fetchLedger = (): Promise<{ events: SrvLedgerEvent[] }> => getJson('/v1/ledger');

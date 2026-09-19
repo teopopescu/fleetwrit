@@ -32,6 +32,7 @@ import {
   fetchLedger,
   fetchLedgerVerify,
   decideRequest,
+  toggleAgent as apiToggleAgent,
   mapAgent,
   mapActionType,
   mapRequest,
@@ -292,13 +293,20 @@ function LiveProvider({ children }: { children: ReactNode }) {
       }));
     };
 
-    const toggleAgent = (agentId: string) =>
+    const toggleAgent = async (agentId: string) => {
+      // Persist to the server, then re-read so the UI reflects the real state
+      // (the server enforces disabled by rejecting that agent's new requests).
+      await apiToggleAgent(agentId);
+      const [ag, inbox, at] = await Promise.all([
+        fetchAgents(),
+        fetchInbox(),
+        fetchActionTypes(),
+      ]);
       setState((prev) => ({
         ...prev,
-        agents: prev.agents.map((a) =>
-          a.id === agentId ? { ...a, disabled: !a.disabled } : a,
-        ),
+        agents: ag.agents.map((a) => mapAgent(a, inbox.requests, at.action_types)),
       }));
+    };
 
     const verifyLedger = async (): Promise<VerifyResult> => {
       const r = await fetchLedgerVerify();

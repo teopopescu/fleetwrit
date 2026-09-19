@@ -50,12 +50,17 @@ def run_dev(
     procs.append(server)
     print(f"→ server   http://localhost:{port}  (API, seeded demo data)", flush=True)
 
-    dash_dir = _find_dashboard(path) if dashboard else None
-    if dashboard and dash_dir is None:
-        print("! dashboard/ not found next to the current directory — server only.", flush=True)
-    if dashboard and dash_dir is not None:
+    # Prefer the dashboard bundled into the server: it is served by the API on
+    # the same port, so a pip-installed user needs no repo checkout and no Node.
+    bundled = (Path(__file__).with_name("static") / "index.html").is_file()
+    if dashboard and bundled:
+        print(f"→ dashboard http://localhost:{port}  (bundled, served by the API)", flush=True)
+    elif dashboard:
+        dash_dir = _find_dashboard(path)
         npm = shutil.which("npm")
-        if npm is None:
+        if dash_dir is None:
+            print("! no bundled dashboard and no sibling dashboard/ — running the server only.", flush=True)
+        elif npm is None:
             print("! npm not found on PATH — running the server without the dashboard.", flush=True)
         else:
             if not (dash_dir / "node_modules").is_dir():

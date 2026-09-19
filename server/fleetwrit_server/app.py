@@ -9,11 +9,14 @@ from __future__ import annotations
 
 import asyncio
 import os
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .store import Store
 from .seed import seed_demo
@@ -141,3 +144,24 @@ async def healthz() -> dict[str, Any]:
 @app.get("/.well-known/jwks.json")
 async def jwks() -> dict[str, Any]:
     return store.jwks()
+
+
+# --- bundled dashboard -----------------------------------------------------
+# When the built dashboard is packaged into ./static, serve it at / so the whole
+# app is one process on one port. Mounted last, so the API routes above win; a
+# 404 falls back to index.html for the SPA's client-side routes.
+_STATIC = Path(__file__).with_name("static")
+
+
+class _SPAStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope: Any) -> Any:
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            if exc.status_code == 404:
+                return await super().get_response("index.html", scope)
+            raise
+
+
+if (_STATIC / "index.html").is_file():
+    app.mount("/", _SPAStaticFiles(directory=str(_STATIC), html=True), name="dashboard")

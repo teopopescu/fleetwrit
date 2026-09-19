@@ -19,22 +19,32 @@ import { minsLabel } from '../lib/format';
 
 // ---- config ---------------------------------------------------------------
 
-export const FLEETWRIT_URL: string | undefined = import.meta.env.VITE_FLEETWRIT_URL;
-export const isLive: boolean = Boolean(FLEETWRIT_URL);
+// Tri-state on VITE_FLEETWRIT_URL: unset -> demo/seed mode; empty string -> live
+// against the same origin that served the page (the dashboard bundled into the
+// server); a URL -> live against that server.
+const _raw = import.meta.env.VITE_FLEETWRIT_URL as string | undefined;
+export const isLive: boolean = _raw != null;
+export const FLEETWRIT_URL: string | undefined = !isLive
+  ? undefined
+  : _raw
+    ? _raw
+    : typeof window !== 'undefined'
+      ? window.location.origin
+      : '';
 
 /** Short label for the connection chip, e.g. "Live · localhost:4100". */
 export function liveLabel(): string {
-  if (!FLEETWRIT_URL) return '';
+  if (!isLive) return '';
   try {
-    return `Live · ${new URL(FLEETWRIT_URL).host}`;
+    return `Live · ${new URL(FLEETWRIT_URL as string).host}`;
   } catch {
     return 'Live';
   }
 }
 
 function base(): string {
-  if (!FLEETWRIT_URL) throw new Error('VITE_FLEETWRIT_URL is not set');
-  return FLEETWRIT_URL.replace(/\/$/, '');
+  if (!isLive) throw new Error('live mode is off (VITE_FLEETWRIT_URL unset)');
+  return (FLEETWRIT_URL ?? '').replace(/\/$/, '');
 }
 
 const POLICY = 'OPA · ask';

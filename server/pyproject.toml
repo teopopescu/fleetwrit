@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fleetwrit-server"
-version = "0.1.0a0"
+version = "0.1.0a1"
 description = "Fleetwrit v0 local server (fleetwrit dev): FastAPI + SQLite."
 requires-python = ">=3.10"
 # NOTE: also requires the `fleetwrit` SDK for the shared fingerprint. In local

@@ -1,0 +1,26 @@
+# Local Fleetwrit stack: server (FastAPI+SQLite, seeded) + dashboard (live).
+#   docker compose up --build
+#   dashboard -> http://localhost:5174   server -> http://localhost:4100
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "4100:4100"
+    volumes:
+      - fleetwrit-data:/data
+
+  dashboard:
+    build:
+      context: ./dashboard
+      args:
+        # baked into the SPA at build time; the browser calls it from the host
+        VITE_FLEETWRIT_URL: http://localhost:4100
+    ports:
+      - "5174:80"
+    depends_on:
+      - server
+
+volumes:
+  fleetwrit-data:

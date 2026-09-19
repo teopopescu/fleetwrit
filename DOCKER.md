@@ -4,6 +4,14 @@ A minimal local stack: the **server** (FastAPI + SQLite, auto-seeded with demo
 data) and the **dashboard** (the React ops console, built in live mode against
 the server). For local/demo use only — auth is off and data lives in SQLite.
 
+> **Prefer no Docker?** From a clone of this repo:
+> ```bash
+> pip install -e ./server -e ./fleetwrit-python
+> fleetwrit dev            # or: fleetwrit-server dev
+> ```
+> One command runs the server (`:4100`) and the dashboard (`:5174`). Needs
+> Python + Node. Flags: `--port`, `--dashboard-port`, `--no-dashboard`, `--no-seed`.
+
 ## Prerequisites
 
 - Docker Desktop (or any Docker engine) running, with Docker Compose v2+.

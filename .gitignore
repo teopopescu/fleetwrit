@@ -1,0 +1,22 @@
+# Dependencies / build
+node_modules/
+dist/
+.venv/
+*.egg-info/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local dev state
+*.db
+*.db-wal
+*.db-shm
+.env.local
+.gstack/
+
+# Impeccable ephemera (keep DESIGN.md, design.json, surfaces, config)
+.impeccable/review/
+.impeccable/build/
+.impeccable/mocks/

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <circle cx="60" cy="60" r="56" fill="#7c1d2a"/>
+  <circle cx="60" cy="60" r="56" fill="none" stroke="#a98430" stroke-width="3"/>
+  <circle cx="60" cy="60" r="44" fill="none" stroke="#5a121d" stroke-width="3"/>
+  <text x="60" y="62" text-anchor="middle" dominant-baseline="central" font-family="Georgia, serif" font-size="44" font-weight="700" fill="#f4e6df">FW</text>
+</svg>

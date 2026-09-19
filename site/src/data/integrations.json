@@ -1,0 +1,79 @@
+{
+  "$comment": "Single source of truth for the integrations grid, the roadmap, the docs index and the dashboard settings page. Shipping an integration means changing one status field. Status is one of: available | next | planned.",
+  "groups": [
+    {
+      "id": "runtimes",
+      "label": "Agent runtimes",
+      "items": [
+        { "name": "LangGraph / LangChain", "status": "available", "issue": null },
+        { "name": "LlamaIndex Workflows", "status": "available", "issue": null },
+        { "name": "OpenAI Agents SDK", "status": "available", "issue": null },
+        { "name": "Amazon Bedrock AgentCore", "status": "available", "issue": null },
+        { "name": "CrewAI", "status": "next", "issue": "12" },
+        { "name": "Claude Agent SDK", "status": "next", "issue": "13" },
+        { "name": "Microsoft Agent Framework", "status": "next", "issue": "14" },
+        { "name": "Google ADK", "status": "next", "issue": "15" },
+        { "name": "Temporal", "status": "planned", "issue": "31" },
+        { "name": "Pydantic AI", "status": "planned", "issue": "32" }
+      ]
+    },
+    {
+      "id": "identity",
+      "label": "Identity",
+      "items": [
+        { "name": "Okta", "status": "available", "issue": null },
+        { "name": "Microsoft Entra ID", "status": "available", "issue": null },
+        { "name": "Google sign-in (development)", "status": "available", "issue": null },
+        { "name": "Keycloak / Dex", "status": "available", "issue": null },
+        { "name": "Google Workspace groups", "status": "next", "issue": "18" },
+        { "name": "SCIM provisioning", "status": "planned", "issue": "35" },
+        { "name": "Auth0", "status": "planned", "issue": "36" }
+      ]
+    },
+    {
+      "id": "policy",
+      "label": "Policy engines",
+      "items": [
+        { "name": "Open Policy Agent", "status": "available", "issue": null },
+        { "name": "Cedar", "status": "available", "issue": null },
+        { "name": "Python predicate", "status": "available", "issue": null }
+      ]
+    },
+    {
+      "id": "notifications",
+      "label": "Notifications",
+      "items": [
+        { "name": "Email", "status": "available", "issue": null },
+        { "name": "Slack (incoming webhook)", "status": "available", "issue": null },
+        { "name": "Generic signed webhook", "status": "available", "issue": null },
+        { "name": "Microsoft Teams app", "status": "next", "issue": "22" },
+        { "name": "PagerDuty", "status": "planned", "issue": "41" },
+        { "name": "ServiceNow", "status": "planned", "issue": "42" },
+        { "name": "Slack interactive approvals", "status": "planned", "issue": "43" }
+      ]
+    }
+  ],
+  "roadmap": {
+    "now": [
+      "One partner-chosen runtime in production",
+      "One OIDC sign-in route with the partner's IdP",
+      "Inbox, request detail and searchable decision list",
+      "Hash-chained ledger with verify and export",
+      "Email and one chat webhook, with expiry reminders"
+    ],
+    "next": [
+      "The second runtime a partner actually runs",
+      "Organisation overview, agents and action catalog screens",
+      "Group mapping and fresh sign-in for critical actions",
+      "Retention settings and subject purge",
+      "Digest notifications and a generic signed webhook"
+    ],
+    "later": [
+      "Routing rules, escalation chains, schedules and SLAs",
+      "Authority limits per person and amount, maker-checker",
+      "External ledger anchoring and evidence packs",
+      "TypeScript SDK and the MCP elicitation bridge",
+      "Hosted multi-tenant cloud"
+    ]
+  }
+}

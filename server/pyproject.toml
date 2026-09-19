@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fleetwrit-server"
+version = "0.1.0a0"
+description = "Fleetwrit v0 local server (fleetwrit dev): FastAPI + SQLite."
+requires-python = ">=3.10"
+# NOTE: also requires the `fleetwrit` SDK for the shared fingerprint. In local
+# dev install the sibling first: pip install -e ../fleetwrit-python
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.29",
+  "cryptography>=42",
+]
+
+[project.scripts]
+fleetwrit-server = "fleetwrit_server.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fleetwrit_server"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"fleetwrit_server/schema.sql" = "fleetwrit_server/schema.sql"

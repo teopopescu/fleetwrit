@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-19T00:00:00Z",
+  "title": "Design System: Fleetwrit",
+  "extensions": {
+    "colorMeta": {
+      "ultramarine-ink": { "role": "primary", "displayName": "Ultramarine Ink", "canonical": "#2b27a6", "tonalRamp": ["#0c0b33", "#141247", "#1c1a63", "#241f84", "#2b27a6", "#514dc0", "#8481d6", "#b9b7e8", "#eceaf6"] },
+      "deep-ultramarine": { "role": "primary", "displayName": "Deep Ultramarine", "canonical": "#201d84", "tonalRamp": ["#0a0930", "#111041", "#181660", "#1c1a72", "#201d84", "#453fa8", "#7873c6", "#b1aee2", "#e9e8f5"] },
+      "record-red": { "role": "secondary", "displayName": "Record Red", "canonical": "#b3261e", "tonalRamp": ["#3a0c09", "#561310", "#7a1a15", "#98201a", "#b3261e", "#cf4b43", "#e08078", "#eeb4af", "#f7e0de"] },
+      "verify-green": { "role": "secondary", "displayName": "Verify Green", "canonical": "#1c6b49", "tonalRamp": ["#082418", "#0d3524", "#124a33", "#175a3d", "#1c6b49", "#2f9269", "#5bb691", "#9bd4bd", "#daefe6"] },
+      "held-amber": { "role": "secondary", "displayName": "Held Amber", "canonical": "#93611a", "tonalRamp": ["#2f1f08", "#48300d", "#634211", "#7c5216", "#93611a", "#b8813a", "#d2a86e", "#e6cca6", "#f4e9d5"] },
+      "bond-paper": { "role": "neutral", "displayName": "Bond Paper", "canonical": "#f7f8f5", "tonalRamp": ["#2b2c29", "#414340", "#5c5e5a", "#7c7e79", "#9fa19c", "#c2c4bf", "#dcded9", "#ecede9", "#f7f8f5"] },
+      "register-band": { "role": "neutral", "displayName": "Register Band", "canonical": "#eceeea", "tonalRamp": ["#2a2c28", "#40423e", "#5a5c57", "#787a75", "#9c9e98", "#bfc1bb", "#d6d8d2", "#e2e4de", "#eceeea"] },
+      "raised-slip": { "role": "neutral", "displayName": "Raised Slip", "canonical": "#fdfdfb", "tonalRamp": ["#2c2c2a", "#424240", "#5d5d5a", "#7d7d79", "#a0a09c", "#c3c3bf", "#dddddb", "#eeeeec", "#fdfdfb"] },
+      "ink-black": { "role": "neutral", "displayName": "Ink Black", "canonical": "#15171c", "tonalRamp": ["#15171c", "#22242b", "#33363f", "#474b53", "#61656d", "#8a8d94", "#b4b6bb", "#d7d8db", "#f0f0f2"] },
+      "secondary-ink": { "role": "neutral", "displayName": "Secondary Ink", "canonical": "#474b53" },
+      "caption-grey": { "role": "neutral", "displayName": "Caption Grey", "canonical": "#61656d" },
+      "hairline": { "role": "neutral", "displayName": "Hairline Rule", "canonical": "#dcded5" },
+      "hairline-strong": { "role": "neutral", "displayName": "Stronger Hairline", "canonical": "#c8cabf" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headline only. Instrument Serif at architectural scale, single weight 400." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles. Instrument Serif, ~20ch cap." },
+      "title": { "displayName": "Title", "purpose": "Step verbs, plan names, panel/doc titles, certificate action line." },
+      "body": { "displayName": "Body", "purpose": "Decks and copy in Public Sans; drops to 0.9375rem for secondary copy." },
+      "label": { "displayName": "Label / Data", "purpose": "Spline Sans Mono for stamps, register heads, receipts, table heads and all record figures (tabular)." }
+    },
+    "shadows": [
+      { "name": "instrument-lift", "value": "0 22px 55px -26px rgba(21, 23, 40, 0.42)", "purpose": "The single crisp deep shadow reserved for the hero certificate — the only lifted object on the page." },
+      { "name": "hairline", "value": "0 1px 2px rgba(21, 23, 28, 0.06)", "purpose": "Defined but effectively unused; a whisper, never a pillow." }
+    ],
+    "motion": [
+      { "name": "state-ease", "value": "130ms ease", "purpose": "Default transition for button background/border/color state." },
+      { "name": "thwack", "value": "460ms cubic-bezier(.16,1,.3,1)", "purpose": "The seal being struck onto an approved certificate." },
+      { "name": "printup", "value": "380ms ease-out", "purpose": "The signed-receipt footer printing up after approval." },
+      { "name": "uncurl", "value": "220ms cubic-bezier(.2,1,.4,1)", "purpose": "Hero slip straightening from -1.5deg to 0 on hover." }
+    ],
+    "breakpoints": [
+      { "name": "table-collapse", "value": "620px" },
+      { "name": "grid-collapse", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The default action — solid ultramarine with an inset struck double-frame. Runs the quickstart, sends the application.",
+      "html": "<button class=\"ds-btn\">Run the quickstart</button>",
+      "css": ".ds-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: 'Public Sans', system-ui, sans-serif; font-weight: 600; font-size: 0.9375rem; line-height: 1; letter-spacing: 0.01em; padding: 0.85rem 1.45rem; border-radius: 4px; border: 1px solid var(--accent, #2b27a6); background: var(--accent, #2b27a6); color: #fff; cursor: pointer; transition: background 130ms ease, border-color 130ms ease; } .ds-btn::after { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(255,255,255,0.34); border-radius: 2px; pointer-events: none; } .ds-btn:hover { background: var(--accent-ink, #201d84); border-color: var(--accent-ink, #201d84); } .ds-btn:focus-visible { outline: 2px solid var(--accent, #2b27a6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action — transparent with a hairline border that darkens and reveals an inset frame on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Become a design partner</button>",
+      "css": ".ds-btn-ghost { position: relative; display: inline-flex; align-items: center; justify-content: center; font-family: 'Public Sans', system-ui, sans-serif; font-weight: 600; font-size: 0.9375rem; line-height: 1; padding: 0.85rem 1.45rem; border-radius: 4px; border: 1px solid var(--line-2, #c8cabf); background: transparent; color: var(--ink, #15171c); cursor: pointer; transition: background 130ms ease, border-color 130ms ease; } .ds-btn-ghost::after { content: ''; position: absolute; inset: 3px; border: 1px solid var(--line, #dcded5); border-radius: 2px; pointer-events: none; opacity: 0; transition: opacity 130ms ease; } .ds-btn-ghost:hover { background: var(--card, #fdfdfb); border-color: var(--ink, #15171c); } .ds-btn-ghost:hover::after { opacity: 1; } .ds-btn-ghost:focus-visible { outline: 2px solid var(--accent, #2b27a6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Design-Partner CTA",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The sealed, perforated pass — a concentric-seal glyph plus a dashed perforation frame. Only for the design-partner action.",
+      "html": "<button class=\"ds-btn-partner\"><span class=\"ds-btn-partner__seal\" aria-hidden=\"true\"></span>Become a design partner</button>",
+      "css": ".ds-btn-partner { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem; font-family: 'Public Sans', system-ui, sans-serif; font-weight: 600; font-size: 0.9375rem; line-height: 1; padding: 0.85rem 1.5rem; border-radius: 4px; border: 1px solid var(--accent, #2b27a6); background: var(--accent, #2b27a6); color: #fff; cursor: pointer; } .ds-btn-partner__seal { width: 15px; height: 15px; flex: none; background: currentColor; -webkit-mask: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10.5' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3Ccircle cx='12' cy='12' r='6.4' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3Ccircle cx='12' cy='12' r='1.7' fill='%23000'/%3E%3C/svg%3E\") center / contain no-repeat; mask: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10.5' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3Ccircle cx='12' cy='12' r='6.4' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3Ccircle cx='12' cy='12' r='1.7' fill='%23000'/%3E%3C/svg%3E\") center / contain no-repeat; } .ds-btn-partner::after { content: ''; position: absolute; inset: 4px; border: 1px dashed currentColor; opacity: 0.4; border-radius: 3px; pointer-events: none; } .ds-btn-partner:hover { background: var(--accent-ink, #201d84); border-color: var(--accent-ink, #201d84); }"
+    },
+    {
+      "name": "Stamp Chip",
+      "kind": "chip",
+      "refersTo": "stamp-chip",
+      "description": "State as a struck mark, not a fill — bordered, uppercase mono, a square swatch, colour set by currentColor.",
+      "html": "<span class=\"ds-stamp ds-stamp--green\">open</span>",
+      "css": ".ds-stamp { display: inline-flex; align-items: center; gap: 0.34rem; font-family: 'Spline Sans Mono Variable', ui-monospace, monospace; font-weight: 500; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid currentColor; line-height: 1; } .ds-stamp::before { content: ''; width: 5px; height: 5px; border-radius: 1px; background: currentColor; } .ds-stamp--green { color: var(--stamp-green, #1c6b49); } .ds-stamp--red { color: var(--stamp-red, #b3261e); } .ds-stamp--amber { color: var(--stamp-amber, #93611a); } .ds-stamp--accent { color: var(--accent, #2b27a6); } .ds-stamp--muted { color: var(--muted, #61656d); }"
+    },
+    {
+      "name": "Record Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A raised slip on the paper ground — flat, 6px corners, 1px hairline border, no shadow.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card__t\">Community</h3><p class=\"ds-card__b\">Everything in the MVP, self-hosted, Apache-2.0.</p></article>",
+      "css": ".ds-card { background: var(--card, #fdfdfb); border: 1px solid var(--line-2, #c8cabf); border-radius: 6px; padding: 1.7rem 1.5rem; color: var(--text, #474b53); } .ds-card__t { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 1.6rem; line-height: 1.05; letter-spacing: -0.01em; color: var(--ink, #15171c); margin: 0 0 0.35rem; } .ds-card__b { font-family: 'Public Sans', system-ui, sans-serif; font-size: 0.9375rem; margin: 0; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Bond-paper fill, hairline border, 4px corners; border shifts to ultramarine on focus.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__l\">Work email</span><input class=\"ds-field__i\" type=\"email\" placeholder=\"you@company.com\"></label>",
+      "css": ".ds-field { display: grid; gap: 0.35rem; } .ds-field__l { font-family: 'Public Sans', system-ui, sans-serif; font-size: 0.8125rem; font-weight: 600; color: var(--text, #474b53); } .ds-field__i { font-family: 'Public Sans', system-ui, sans-serif; font-size: 0.9375rem; color: var(--ink, #15171c); padding: 0.62rem 0.72rem; border: 1px solid var(--line-2, #c8cabf); border-radius: 4px; background: var(--bg, #f7f8f5); width: 100%; } .ds-field__i:focus { border-color: var(--accent, #2b27a6); outline: none; } .ds-field__i:focus-visible { outline: 2px solid var(--accent, #2b27a6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Register Head",
+      "kind": "nav",
+      "refersTo": "label",
+      "description": "The ruled section head — a mono index/reference line in ultramarine with a hairline that runs to the margin.",
+      "html": "<p class=\"ds-reg\"><span class=\"ds-reg__no\">03</span><span class=\"ds-reg__file\">how-it-works</span></p>",
+      "css": ".ds-reg { display: flex; align-items: baseline; gap: 0.9rem; font-family: 'Spline Sans Mono Variable', ui-monospace, monospace; font-size: 0.8125rem; letter-spacing: 0.02em; color: var(--accent, #2b27a6); font-feature-settings: 'tnum'; margin: 0 0 1.1rem; } .ds-reg::after { content: ''; flex: 1; height: 1px; background: var(--line-2, #c8cabf); align-self: center; } .ds-reg__no { color: var(--accent, #2b27a6); font-weight: 600; } .ds-reg__file { color: var(--muted, #61656d); }"
+    },
+    {
+      "name": "Certificate of Authorisation (signature)",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The one lifted instrument — a ruled slip that carries the single deep shadow, with the struck ultramarine seal and a signed-receipt line. Approval state shown here as struck.",
+      "html": "<figure class=\"ds-crt\"><header class=\"ds-crt__head\"><span>Certificate of authorisation</span><span class=\"ds-crt__state\">Authorised</span></header><div class=\"ds-crt__body\"><p class=\"ds-crt__ref\">deploy.rollback · prod · FW·2026·0914</p><h3 class=\"ds-crt__action\">Roll back <span class=\"ds-crt__hl\">payments-api</span></h3></div><footer class=\"ds-crt__receipt\"><span class=\"ds-crt__label\">Signed receipt · agent resumed</span><code class=\"ds-crt__hash\">sha256:9f2c7a41e0b8d3</code></footer></figure>",
+      "css": ".ds-crt { margin: 0; width: 100%; max-width: 404px; background: var(--card, #fdfdfb); border: 1px solid var(--line-2, #c8cabf); border-radius: 6px; box-shadow: 0 22px 55px -26px rgba(21,23,40,0.42); color: var(--ink, #15171c); overflow: hidden; } .ds-crt__head { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1.1rem; border-bottom: 1px solid var(--line, #dcded5); background: var(--bg-soft, #eceeea); font-family: 'Spline Sans Mono Variable', ui-monospace, monospace; font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent, #2b27a6); } .ds-crt__state { color: var(--stamp-green, #1c6b49); } .ds-crt__body { padding: 1.1rem; } .ds-crt__ref { font-family: 'Spline Sans Mono Variable', ui-monospace, monospace; font-size: 0.7rem; color: var(--muted, #61656d); margin: 0 0 0.4rem; } .ds-crt__action { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 1.55rem; line-height: 1.02; letter-spacing: -0.025em; margin: 0; } .ds-crt__hl { color: var(--accent, #2b27a6); } .ds-crt__receipt { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.7rem 1.1rem; border-top: 1px solid var(--line, #dcded5); } .ds-crt__label { font-family: 'Spline Sans Mono Variable', ui-monospace, monospace; font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--stamp-green, #1c6b49); } .ds-crt__hash { font-family: 'Spline Sans Mono Variable', ui-monospace, monospace; font-size: 0.72rem; color: var(--text, #474b53); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Office of Record",
+    "overview": "Fleetwrit looks like a document register, not a dev-tool SaaS page. The surface is cool bond paper ruled by hairlines; content is set as records — numbered, dated, referenced — in a single serif display face over a plain UI sans, with every figure struck in tabular monospace. State is never a coloured pill; it is a struck mark. One ultramarine ink carries every action, link and the engraved seal. Depth is almost entirely refused: surfaces sit flat on the paper, separated by 1px rules, and exactly one instrument on the page is lifted. The world deliberately rejects two category defaults: the bright dev-tool page (sky gradients, pastel card kits, eyebrows over headings, pill-everything) and its neon-terminal opposite. Restraint is the mechanism of credibility. The signature is the playable certificate: the hero instrument opens as a pending approval request and, on a press, is struck with an ultramarine seal into a certificate of authorisation carrying a signed-receipt fingerprint and a Verify control.",
+    "keyCharacteristics": [
+      "Bond-paper ground, ink text, one ultramarine accent, three stamp inks used only on struck marks.",
+      "Hairline rules instead of shadows; a single lifted instrument.",
+      "Near-square 4px corners; records are squared, never pill-shaped.",
+      "One serif display face, one UI sans, one tabular mono for all data.",
+      "State shown as a struck stamp-chip, not a coloured fill."
+    ],
+    "rules": [
+      { "name": "The One Ink Rule", "body": "Exactly one accent exists — ultramarine. If a surface needs a second \"colour,\" it is wrong; reach for a rule, a weight, or a stamp mark instead.", "section": "colors" },
+      { "name": "The Struck-Mark Rule", "body": "Record-red, verify-green and held-amber never fill a shape or set body text. They colour only a struck mark: a stamp-chip, a tick, a seal, a status dot.", "section": "colors" },
+      { "name": "The Tabular Figures Rule", "body": "Every number that is a record — sequence numbers, timestamps, ids, fingerprints, prices, counts — is set in Spline Sans Mono with tabular figures so columns align.", "section": "typography" },
+      { "name": "The Single-Weight Display Rule", "body": "Instrument Serif ships one weight (400) with font-synthesis: none; never faux-bold it. Emphasis at display scale comes from size and tracking, not weight.", "section": "typography" },
+      { "name": "The One Lifted Object Rule", "body": "At most one element on any screen carries a shadow — the hero instrument. Everything else is flat on paper, separated by 1px rules. No pillow shadows anywhere.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do spend colour on one element — the One Ink Rule. Ultramarine for actions, links, marks; everything else is ink on paper.",
+      "Do set every record figure (ids, sequence numbers, timestamps, fingerprints, prices) in Spline Sans Mono with tabular figures.",
+      "Do separate content with 1px hairlines and the Register Band; build tables and lists as ruled registers.",
+      "Do show state as a struck stamp-chip (bordered, mono, uppercase, currentColor), not a coloured fill.",
+      "Do keep corners squared (4px records, 6px slips)."
+    ],
+    "donts": [
+      "Don't add shadows to more than the one hero instrument; no pillow shadows, no card lift.",
+      "Don't faux-bold Instrument Serif or request weights it doesn't ship — it is single-weight 400 with font-synthesis: none.",
+      "Don't use pill radii or round chips; records are squared.",
+      "Don't fill shapes or set text in record-red, verify-green or held-amber — those inks belong to struck marks only.",
+      "Don't introduce a second accent hue, a gradient, or a pastel card kit."
+    ]
+  }
+}

@@ -1,0 +1,85 @@
+---
+// Continuously scrolling logo bar, the way startups show their integrations.
+// Two identical halves translate -50% for a seamless loop; hover pauses it;
+// prefers-reduced-motion stops the motion and wraps the row instead.
+// Brand marks live in /public/logos as monochrome SVGs (Simple Icons); a few
+// integrations have no brand icon and show as a wordmark in the same row.
+const logos: { label: string; file?: string }[] = [
+  { label: 'LangGraph', file: 'langchain' },
+  { label: 'OpenAI Agents', file: 'openai' },
+  { label: 'LlamaIndex' },
+  { label: 'Bedrock AgentCore', file: 'aws' },
+  { label: 'CrewAI', file: 'crewai' },
+  { label: 'Pydantic AI', file: 'pydantic' },
+  { label: 'Temporal', file: 'temporal' },
+  { label: 'Okta', file: 'okta' },
+  { label: 'Microsoft Entra', file: 'entra' },
+  { label: 'Google', file: 'google' },
+  { label: 'Keycloak', file: 'keycloak' },
+  { label: 'Auth0', file: 'auth0' },
+  { label: 'Open Policy Agent' },
+  { label: 'Cedar' },
+  { label: 'Slack', file: 'slack' },
+  { label: 'Microsoft Teams', file: 'teams' },
+  { label: 'PagerDuty', file: 'pagerduty' },
+  { label: 'ServiceNow' },
+];
+const track = [...logos, ...logos];
+---
+<div class="lm" role="img" aria-label={`Integrations: ${logos.map((l) => l.label).join(', ')}`}>
+  <div class="lm__track" aria-hidden="true">
+    {track.map((l) => (
+      l.file
+        ? <img class="lm__logo" src={`/logos/${l.file}.svg`} alt="" width="112" height="30" loading="lazy" />
+        : <span class="lm__word">{l.label}</span>
+    ))}
+  </div>
+</div>
+
+<style>
+  .lm {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .lm__track {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(2rem, 5vw, 3.6rem);
+    width: max-content;
+    padding-block: 0.4rem;
+    animation: lm-scroll 42s linear infinite;
+  }
+  .lm:hover .lm__track { animation-play-state: paused; }
+
+  .lm__logo {
+    height: 28px;
+    width: auto;
+    opacity: 0.42;
+    filter: grayscale(1);
+    transition: opacity 140ms ease;
+    flex: none;
+  }
+  .lm__logo:hover { opacity: 0.85; }
+
+  .lm__word {
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+    color: #aab0be;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  @keyframes lm-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lm { -webkit-mask-image: none; mask-image: none; }
+    .lm__track { animation: none; flex-wrap: wrap; justify-content: center; gap: 1.5rem 2.4rem; width: auto; }
+    /* second (duplicate) half is redundant when wrapped; hide it */
+    .lm__track > :nth-child(n+19) { display: none; }
+  }
+</style>

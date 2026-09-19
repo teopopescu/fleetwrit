@@ -1,0 +1,196 @@
+---
+// The hero instrument, made playable. It starts as an approval request an agent
+// is stuck behind; press Approve and it becomes a signed certificate the agent
+// resumes on. Illustrative — real captures come from `fleetwrit dev`.
+const fingerprint = 'sha256:9f2c7a41e0b8d3';
+---
+<figure class="crt is-pending" aria-label="An approval request: the remediation agent wants to roll back payments-api and cannot act until an on-call reviewer signs off. Approving it issues a signed certificate and the agent resumes.">
+  <header class="crt__head">
+    <span class="crt__title">
+      <span class="crt__t-pending">Approval request</span>
+      <span class="crt__t-done">Certificate of authorisation</span>
+    </span>
+    <span class="crt__state" aria-live="polite">
+      <span class="crt__t-pending">Awaiting sign-off</span>
+      <span class="crt__t-done">Authorised</span>
+    </span>
+  </header>
+
+  <div class="crt__body">
+    <p class="crt__kicker">deploy.rollback · prod · FW·2026·0914</p>
+    <h3 class="crt__action">Roll back <span class="crt__hl">payments-api</span></h3>
+    <p class="crt__ctx">Your remediation agent wants to do this. It can’t act until an on-call reviewer signs off.</p>
+
+    <dl class="crt__rows">
+      <div class="crt__row"><dt>Change</dt><i class="crt__lead"></i><dd>roll back v41 &rarr; v42</dd></div>
+      <div class="crt__row"><dt>Reason</dt><i class="crt__lead"></i><dd>checkout error rate spiked</dd></div>
+      <div class="crt__row crt__row--route"><dt>Approvers</dt><i class="crt__lead"></i><dd><b>sre-oncall</b> · Okta group platform-sre</dd></div>
+    </dl>
+
+    <div class="crt__reviewers">
+      <span class="crt__avatars" aria-hidden="true"><i>MK</i><i>AL</i><i>RD</i><i class="crt__more">+1</i></span>
+      <span class="crt__revnote">On call right now — any one can sign off</span>
+    </div>
+  </div>
+
+  <!-- pending: the visitor decides -->
+  <div class="crt__ask">
+    <button class="crt__btn crt__btn--approve" type="button" data-approve>Approve</button>
+    <button class="crt__btn crt__btn--reject" type="button" data-reject>Reject</button>
+  </div>
+
+  <!-- rejected -->
+  <div class="crt__reject-note">
+    <span>Rejected — agent held, nothing ran.</span>
+    <button class="crt__again" type="button" data-again>Try again</button>
+  </div>
+
+  <!-- granted: revealed once stamped -->
+  <div class="crt__grant" aria-hidden="true">
+    <span class="crt__sealwrap">
+      <svg class="crt__seal" viewBox="0 0 96 96" role="img" aria-label="Approved seal">
+        <circle cx="48" cy="48" r="45" fill="none" stroke="currentColor" stroke-width="1"/>
+        <circle cx="48" cy="48" r="38.5" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="48" cy="48" r="27" fill="none" stroke="currentColor" stroke-width="1"/>
+        <g stroke="currentColor" stroke-width="1">
+          {Array.from({ length: 60 }, (_, i) => (i * 360) / 60).map((deg) => (
+            <line x1="48" y1="4.5" x2="48" y2="8" transform={`rotate(${deg} 48 48)`} />
+          ))}
+        </g>
+        <text x="48" y="46" text-anchor="middle" font-family="Instrument Serif, Georgia, serif" font-size="21" font-weight="400" fill="currentColor" letter-spacing="0">FW</text>
+        <text x="48" y="61" text-anchor="middle" font-family="Spline Sans Mono Variable, monospace" font-size="6" letter-spacing="2.4" fill="currentColor">APPROVED</text>
+      </svg>
+    </span>
+    <div class="crt__grantee">
+      <span class="crt__by">Signed by Marcus Okonkwo</span>
+      <span class="crt__auth">Okta · authenticated 02:11 UTC</span>
+    </div>
+  </div>
+
+  <footer class="crt__receipt" data-fp={fingerprint} aria-hidden="true">
+    <div class="crt__fp">
+      <span class="crt__fplabel">Signed receipt · agent resumed</span>
+      <code class="crt__fphash">{fingerprint}</code>
+    </div>
+    <button class="crt__verify" type="button" data-verify>
+      <span class="crt__vmark" aria-hidden="true"></span>
+      <span class="crt__vtext">Verify</span>
+    </button>
+  </footer>
+  <button class="crt__again crt__again--foot" type="button" data-again aria-hidden="true">Stamp another</button>
+</figure>
+
+<style>
+  .crt {
+    margin: 0; width: 100%; max-width: 404px;
+    background: var(--card); border: 1px solid var(--line-2); border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg); color: var(--ink); overflow: hidden; position: relative;
+  }
+  .crt__head {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    padding: 0.7rem 1.1rem; border-bottom: 1px solid var(--line); background: var(--bg-soft);
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .crt__title { color: var(--accent); font-weight: 500; }
+  .crt__state { color: var(--stamp-amber); }
+  .crt__t-done { display: none; }
+  .crt.is-approved .crt__t-pending { display: none; }
+  .crt.is-approved .crt__t-done { display: inline; }
+  .crt.is-approved .crt__state { color: var(--stamp-green); }
+
+  .crt__body { padding: 1.1rem 1.1rem 1rem; }
+  .crt__kicker { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin: 0 0 0.4rem; }
+  .crt__action { font-size: 1.55rem; margin: 0 0 0.4rem; letter-spacing: -0.025em; line-height: 1.02; }
+  .crt__hl { color: var(--accent); }
+  .crt__ctx { font-size: 0.82rem; color: var(--text); margin: 0 0 1rem; line-height: 1.45; }
+
+  .crt__rows { margin: 0; display: grid; gap: 0.55rem; }
+  .crt__row { display: flex; align-items: baseline; gap: 0.5rem; font-family: var(--mono); font-size: 0.76rem; }
+  .crt__row dt { color: var(--muted); flex: none; }
+  .crt__lead { flex: 1; border-bottom: 1px dotted var(--line-2); transform: translateY(-2px); }
+  .crt__row dd { margin: 0; color: var(--ink); flex: none; font-feature-settings: 'tnum'; }
+  .crt__was { color: var(--muted); margin-left: 0.15rem; }
+  .crt__row--route dd { color: var(--text); }
+  .crt__row--route b { color: var(--ink); font-weight: 600; }
+
+  .crt__reviewers { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.95rem; }
+  .crt__avatars { display: inline-flex; flex: none; }
+  .crt__avatars i { width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-family: var(--mono); font-size: 0.56rem; color: #fff; background: var(--accent); border: 1.5px solid var(--card); margin-left: -8px; }
+  .crt__avatars i:first-child { margin-left: 0; }
+  .crt__more { background: var(--muted) !important; }
+  .crt__revnote { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); }
+
+  /* pending action row */
+  .crt__ask { display: grid; grid-template-columns: 1.6fr 1fr; gap: 0.55rem; padding: 0 1.1rem 1.1rem; }
+  .crt__btn { font-family: var(--sans); font-weight: 600; font-size: var(--t-sm); padding: 0.72rem 1rem; border-radius: var(--r); cursor: pointer; border: 1px solid; transition: transform 90ms ease, background 130ms ease, border-color 130ms ease, color 130ms ease; }
+  .crt__btn:active { transform: translateY(1px); }
+  .crt__btn--approve { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .crt__btn--approve:hover { background: var(--accent-ink); }
+  .crt__btn--reject { background: transparent; border-color: var(--line-2); color: var(--text); }
+  .crt__btn--reject:hover { border-color: var(--stamp-red); color: var(--stamp-red); }
+  .crt.is-approved .crt__ask, .crt.is-rejected .crt__ask { display: none; }
+
+  /* granted */
+  .crt__grant { display: none; align-items: center; gap: 0.9rem; padding: 0.9rem 1.1rem; border-top: 1px solid var(--line); background: repeating-linear-gradient(-45deg, transparent, transparent 7px, rgba(43,39,166,0.035) 7px, rgba(43,39,166,0.035) 8px); }
+  .crt.is-approved .crt__grant { display: flex; }
+  .crt__sealwrap { position: relative; flex: none; line-height: 0; }
+  .crt__seal { width: 64px; height: 64px; color: var(--accent); transform: rotate(-5deg); }
+  .crt.is-approved .crt__seal { animation: thwack 460ms cubic-bezier(.16,1,.3,1) both; }
+  .crt__sealwrap::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; }
+  .crt.is-approved .crt__sealwrap::after { animation: bloom 620ms ease-out both; }
+  .crt__grantee { display: grid; gap: 0.1rem; }
+  .crt__by { font-family: var(--display); font-weight: 640; font-size: 1.0rem; color: var(--ink); letter-spacing: -0.01em; }
+  .crt__auth { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); font-feature-settings: 'tnum'; }
+
+  /* receipt */
+  .crt__receipt { display: none; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.7rem 1.1rem; }
+  .crt.is-approved .crt__receipt { display: flex; animation: printup 380ms ease-out both; animation-delay: 200ms; }
+  .crt__fp { display: grid; gap: 0.1rem; min-width: 0; }
+  .crt__fplabel { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--stamp-green); }
+  .crt__fphash { font-family: var(--mono); font-size: 0.72rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; }
+  .crt__verify { flex: none; display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--mono); font-size: 0.7rem; padding: 0.42rem 0.7rem; border: 1px solid var(--line-2); border-radius: var(--r); background: var(--bg); color: var(--ink); cursor: pointer; transition: border-color 130ms ease, color 130ms ease; }
+  .crt__verify:hover { border-color: var(--accent); color: var(--accent); }
+  .crt__vmark { width: 11px; height: 11px; border: 1.5px solid var(--muted); border-radius: 2px; }
+  .crt.is-verified .crt__verify { color: var(--stamp-green); border-color: var(--stamp-green); }
+  .crt.is-verified .crt__vmark { border: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 8.5l3.5 3.5L13.5 4' fill='none' stroke='%231C6B49' stroke-width='2.6' stroke-linecap='square'/%3E%3C/svg%3E") no-repeat center / contain; }
+
+  /* reset */
+  .crt__again { font-family: var(--mono); font-size: 0.68rem; padding: 0.4rem 0.65rem; border: 1px solid var(--line-2); border-radius: var(--r); background: var(--bg); color: var(--muted); cursor: pointer; }
+  .crt__again:hover { border-color: var(--accent); color: var(--accent); }
+  .crt__again--foot { display: none; width: calc(100% - 2.2rem); margin: 0 1.1rem 1rem; text-align: center; }
+  .crt.is-approved .crt__again--foot { display: block; }
+
+  /* rejected */
+  .crt.is-rejected .crt__head { background: #f6e9e8; }
+  .crt.is-rejected .crt__state { color: var(--stamp-red); }
+  .crt__reject-note { display: none; padding: 0.9rem 1.1rem; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 0.74rem; color: var(--stamp-red); align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .crt.is-rejected .crt__reject-note { display: flex; }
+
+  @keyframes thwack {
+    0% { transform: scale(1.9) rotate(-16deg); opacity: 0; }
+    55% { transform: scale(.9) rotate(-2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-5deg); opacity: 1; }
+  }
+  @keyframes bloom { 0% { opacity: .5; transform: scale(.5); } 100% { opacity: 0; transform: scale(1.7); } }
+  @keyframes printup { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crt.is-approved .crt__seal, .crt.is-approved .crt__sealwrap::after, .crt.is-approved .crt__receipt { animation: none; }
+    .crt__btn:active { transform: none; }
+  }
+</style>
+
+<script>
+  const fig = document.querySelector<HTMLElement>('.crt');
+  if (fig) {
+    const approve = fig.querySelector<HTMLButtonElement>('[data-approve]');
+    const reject = fig.querySelector<HTMLButtonElement>('[data-reject]');
+    const verify = fig.querySelector<HTMLButtonElement>('[data-verify]');
+    const vtext = fig.querySelector<HTMLElement>('.crt__vtext');
+    approve?.addEventListener('click', () => { fig.classList.remove('is-rejected'); fig.classList.add('is-approved'); });
+    reject?.addEventListener('click', () => { fig.classList.remove('is-approved', 'is-verified'); fig.classList.add('is-rejected'); });
+    verify?.addEventListener('click', () => { fig.classList.add('is-verified'); if (vtext) vtext.textContent = 'Chain intact'; });
+    fig.querySelectorAll<HTMLButtonElement>('[data-again]').forEach((b) =>
+      b.addEventListener('click', () => { fig.classList.remove('is-approved', 'is-rejected', 'is-verified'); if (vtext) vtext.textContent = 'Verify'; }));
+  }
+</script>

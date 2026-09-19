@@ -1,0 +1,61 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+const groups = [
+  {
+    label: 'Get started',
+    items: [
+      { title: 'Quickstart', href: '/docs/quickstart', body: 'From pip install to a first approved action in ten minutes.' },
+    ],
+  },
+  {
+    label: 'Build',
+    items: [
+      { title: 'Defining actions', href: '/docs/actions', body: 'The @action decorator: risk, summaries, schemas, redaction, versioning.' },
+      { title: 'Asking a human', href: '/docs/asking', body: 'approve, input and choose; edits, expiry, idempotency and resume.' },
+      { title: 'Policy engines', href: '/docs/policy', body: 'The allow / deny / ask contract, OPA and Cedar, signed receipts.' },
+    ],
+  },
+  {
+    label: 'Connect',
+    items: [
+      { title: 'Integrations', href: '/docs/integrations', body: 'Wrap the pause-and-resume in LangGraph, LlamaIndex, OpenAI Agents, AgentCore.' },
+      { title: 'Identity', href: '/docs/identity', body: 'Okta and Entra sign-in, group mapping, fresh sign-in for critical actions.' },
+    ],
+  },
+  {
+    label: 'Run',
+    items: [
+      { title: 'Operate', href: '/docs/operate', body: 'Deploy, configure, back up, rotate keys and verify the ledger.' },
+      { title: 'Security model', href: '/docs/security', body: 'The threat model, fail-closed behaviour, and what Fleetwrit protects.' },
+    ],
+  },
+];
+---
+<DocsLayout title="Documentation" description="Everything you need to gate an agent action behind a named human — from your first local approval to a production rollout.">
+  <p>Fleetwrit is the independent authorisation record for consequential AI-agent actions. An agent stops before a consequential action, a named human decides, and the agent resumes on exactly that decision — with a signed receipt and a tamper-evident record that lives outside the system it governs.</p>
+  <p>New here? Start with the <a href="/docs/quickstart">Quickstart</a>. It takes about ten minutes and needs nothing but <code>pip</code>.</p>
+
+  {groups.map((group) => (
+    <section class="dgrp">
+      <h2>{group.label}</h2>
+      <div class="dgrid">
+        {group.items.map((item) => (
+          <a class="dcard" href={item.href}>
+            <span class="dcard__t">{item.title}</span>
+            <span class="dcard__b">{item.body}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+</DocsLayout>
+
+<style>
+  .dgrp { margin-top: 2rem; }
+  .dgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.8rem; }
+  .dcard { display: flex; flex-direction: column; gap: 0.25rem; padding: 1.1rem 1.15rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); box-shadow: var(--shadow-sm); text-decoration: none !important; transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease; }
+  .dcard:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--line-2); }
+  .dcard__t { font-weight: 700; color: var(--ink); }
+  .dcard__b { font-size: var(--t-sm); color: var(--text); }
+</style>

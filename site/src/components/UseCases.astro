@@ -1,0 +1,153 @@
+---
+// Use cases by team, as a tablist. Each use case is a compact approval-card
+// example echoing the hero certificate. Every panel renders in the HTML; without
+// JS they stack under their own headings, so nothing is hidden.
+const groups = [
+  {
+    label: 'Platform & SRE',
+    blurb: 'The remediation agents already fixing prod — now they stop for a human on the changes that carry blast radius.',
+    cases: [
+      { kind: 'deploy.rollback · prod', t: 'Roll back a deployment', d: 'Approve the version the agent proposes, or edit it before it ships.', risk: 'high' },
+      { kind: 'service.restart · prod', t: 'Restart or fail over a service', d: 'A named on-call confirms the blast radius first.', risk: 'high' },
+      { kind: 'secret.rotate · prod', t: 'Rotate a production secret', d: 'Sign off before a key that could lock a service out is rotated.', risk: 'high' },
+      { kind: 'cluster.scale · prod', t: 'Drain or scale a cluster', d: 'Capacity changes above a threshold wait for one yes.', risk: 'medium' },
+    ],
+  },
+  {
+    label: 'Finance ops',
+    blurb: 'AP, refunds and payments agents move money. A person owns each figure before it leaves.',
+    cases: [
+      { kind: 'refund.issue · finance', t: 'Issue a refund', d: 'The reviewer can cut the amount; the receipt binds the edited figure.', risk: 'high' },
+      { kind: 'payment.release · finance', t: 'Release a vendor payment', d: 'Wires and payables over a limit stop for a named approver.', risk: 'high' },
+      { kind: 'ledger.adjust · finance', t: 'Post a ledger adjustment', d: 'Manual journal entries carry a signature and a reason.', risk: 'medium' },
+      { kind: 'fee.waive · finance', t: 'Waive a fee', d: 'Discretionary waivers are logged to a person and an amount.', risk: 'medium' },
+    ],
+  },
+  {
+    label: 'Data & privacy',
+    blurb: 'Agents that touch customer data pause where the law and your auditors expect a human.',
+    cases: [
+      { kind: 'data.delete · privacy', t: 'Delete customer records', d: 'Erasure needs a fresh sign-in; the purge is chained to the ledger.', risk: 'critical' },
+      { kind: 'data.export · privacy', t: 'Export a dataset', d: 'Bulk exports of personal data wait for a named release.', risk: 'high' },
+      { kind: 'access.grant · data', t: 'Grant warehouse access', d: 'Access to sensitive tables is granted by a human, time-boxed.', risk: 'medium' },
+      { kind: 'data.migrate · privacy', t: 'Run a bulk migration', d: 'Destructive or irreversible migrations wait for a reviewed go.', risk: 'critical' },
+    ],
+  },
+  {
+    label: 'Security & access',
+    blurb: 'Access agents grant least-privilege on demand — every grant approved per request, never standing.',
+    cases: [
+      { kind: 'access.grant · prod', t: 'Grant production access', d: 'Just-in-time prod access, one request at a time, with an expiry.', risk: 'high' },
+      { kind: 'net.firewall · prod', t: 'Open a firewall rule', d: 'Network changes carry an approver, a reason and a deadline.', risk: 'high' },
+      { kind: 'cred.disable · iam', t: 'Disable a credential', d: 'Revocations are authorised by a person and recorded.', risk: 'medium' },
+      { kind: 'breakglass.open · iam', t: 'Approve break-glass', d: 'Emergency access is signed, time-limited and flagged red.', risk: 'critical' },
+    ],
+  },
+  {
+    label: 'Customer support',
+    blurb: 'Support agents resolve tickets end to end — with a human on the actions a customer would feel.',
+    cases: [
+      { kind: 'credit.issue · support', t: 'Issue account credit', d: 'Goodwill credits over a limit need a human yes.', risk: 'medium' },
+      { kind: 'plan.change · support', t: 'Cancel or change a plan', d: 'Account changes an agent proposes wait for sign-off.', risk: 'medium' },
+      { kind: 'message.send · support', t: 'Message a customer', d: 'Sensitive outbound messages are reviewed before they send.', risk: 'low' },
+      { kind: 'account.close · support', t: 'Close or merge accounts', d: 'Irreversible account actions are gated and recorded.', risk: 'high' },
+    ],
+  },
+];
+
+const risk: Record<string, { cls: string; label: string }> = {
+  critical: { cls: 'red', label: 'critical' },
+  high: { cls: 'amber', label: 'high risk' },
+  medium: { cls: 'accent', label: 'medium' },
+  low: { cls: 'muted', label: 'low' },
+};
+---
+<div class="uc" data-uc>
+  <div class="uc__tabs" role="tablist" aria-label="Use cases by team">
+    {groups.map((g, i) => (
+      <button class="uc__tab" role="tab" id={`uctab-${i}`} aria-controls={`ucpanel-${i}`} aria-selected={i === 0 ? 'true' : 'false'} data-idx={i}>{g.label}</button>
+    ))}
+  </div>
+  <div class="uc__panels">
+    {groups.map((g, i) => (
+      <section class="uc__panel" id={`ucpanel-${i}`} role="tabpanel" aria-labelledby={`uctab-${i}`} data-idx={i}>
+        <h3 class="uc__ph">{g.label}</h3>
+        <p class="uc__blurb">{g.blurb}</p>
+        <ul class="uc__grid" role="list">
+          {g.cases.map((c) => (
+            <li class="mc" aria-label={`Example approval request: ${c.t}, ${risk[c.risk].label}`}>
+              <div class="mc__head">
+                <span class="mc__kind">{c.kind}</span>
+                <span class={`stamp stamp--${risk[c.risk].cls}`}>{risk[c.risk].label}</span>
+              </div>
+              <h4 class="mc__title">{c.t}</h4>
+              <p class="mc__detail">{c.d}</p>
+              <div class="mc__act" aria-hidden="true">
+                <span class="mc__btn mc__btn--go">Approve</span>
+                <span class="mc__btn">Reject</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</div>
+
+<style>
+  .uc__tabs { display: flex; flex-wrap: wrap; gap: 0.2rem 1.6rem; border-bottom: 1px solid var(--line-2); }
+  .uc__tab { appearance: none; background: none; border: none; cursor: pointer; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.02em; color: var(--muted); padding: 0.7rem 0.1rem; margin-bottom: -1px; border-bottom: 2px solid transparent; }
+  .uc__tab:hover { color: var(--ink); }
+  .uc__tab[aria-selected='true'] { color: var(--accent); border-bottom-color: var(--accent); }
+  .uc__tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  .uc__panel { padding-top: 2rem; }
+  .uc--js .uc__panel[hidden] { display: none; }
+  .uc__ph { font-size: var(--t-xl); margin: 0 0 0.4rem; }
+  .uc--js .uc__ph { display: none; }
+  .uc__blurb { font-size: var(--t-lg); color: var(--text); max-width: 52ch; margin: 0 0 1.8rem; }
+
+  .uc__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  /* compact approval-card example, echoing the hero certificate */
+  .mc { display: flex; flex-direction: column; gap: 0.5rem; background: var(--card); border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 1.1rem 1.15rem; }
+  .mc__head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .mc__kind { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); }
+  .mc__title { font-family: var(--display); font-size: 1.3rem; letter-spacing: -0.01em; line-height: 1.03; margin: 0.1rem 0 0; }
+  .mc__detail { font-size: var(--t-sm); color: var(--text); line-height: 1.45; margin: 0; flex: 1; }
+  .mc__act { display: flex; gap: 0.45rem; margin-top: 0.55rem; padding-top: 0.85rem; border-top: 1px dotted var(--line-2); }
+  .mc__btn { font-family: var(--sans); font-weight: 600; font-size: 0.78rem; padding: 0.42rem 0.9rem; border-radius: var(--r); border: 1px solid var(--line-2); color: var(--text); }
+  .mc__btn--go { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  @media (max-width: 760px) { .uc__grid { grid-template-columns: 1fr; } }
+  .uc:not(.uc--js) .uc__panel + .uc__panel { border-top: 1px solid var(--line-2); margin-top: 1.5rem; }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-uc]');
+  if (root) {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('.uc__tab'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('.uc__panel'));
+    root.classList.add('uc--js');
+    const select = (i: number, focus = true) => {
+      tabs.forEach((t, j) => {
+        const on = i === j;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        panels[j].hidden = !on;
+      });
+      if (focus) tabs[i].focus();
+    };
+    select(0, false);
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i, false));
+      tab.addEventListener('keydown', (e) => {
+        const last = tabs.length - 1;
+        if (e.key === 'ArrowRight') { e.preventDefault(); select(i === last ? 0 : i + 1); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); select(i === 0 ? last : i - 1); }
+        else if (e.key === 'Home') { e.preventDefault(); select(0); }
+        else if (e.key === 'End') { e.preventDefault(); select(last); }
+      });
+    });
+  }
+</script>

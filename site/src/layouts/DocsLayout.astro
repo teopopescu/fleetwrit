@@ -1,0 +1,143 @@
+---
+import Base from './Base.astro';
+
+// Shared shell for the docs. Works as a Markdown page layout (receives
+// `frontmatter`) and as a normal layout (receives `title`/`description` props).
+const fm = Astro.props.frontmatter ?? Astro.props;
+const title: string = fm.title ?? 'Docs';
+const description: string | undefined = fm.description;
+
+const nav = [
+  {
+    label: 'Get started',
+    items: [
+      { title: 'Overview', href: '/docs' },
+      { title: 'Quickstart', href: '/docs/quickstart' },
+    ],
+  },
+  {
+    label: 'Build',
+    items: [
+      { title: 'Defining actions', href: '/docs/actions' },
+      { title: 'Asking a human', href: '/docs/asking' },
+      { title: 'Policy engines', href: '/docs/policy' },
+    ],
+  },
+  {
+    label: 'Connect',
+    items: [
+      { title: 'Integrations', href: '/docs/integrations' },
+      { title: 'Identity', href: '/docs/identity' },
+    ],
+  },
+  {
+    label: 'Run',
+    items: [
+      { title: 'Operate', href: '/docs/operate' },
+      { title: 'Security model', href: '/docs/security' },
+    ],
+  },
+];
+
+const here = Astro.url.pathname.replace(/\/$/, '') || '/docs';
+---
+<Base title={`${title} · Fleetwrit docs`} description={description}>
+  <header class="dtop">
+    <div class="dtop__inner">
+      <a class="dbrand" href="/" aria-label="Fleetwrit home">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="7" fill="#14161c"/><path d="M7 12.4l3.1 3.1L17 8.6" stroke="#fff" stroke-width="2.1" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Fleetwrit</span>
+        <span class="dbrand__tag">docs</span>
+      </a>
+      <nav class="dtop__nav" aria-label="Site">
+        <a href="/#how">Product</a>
+        <a href="/#pricing">Pricing</a>
+        <a href="https://github.com/fleetwrit/fleetwrit">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="dshell">
+    <aside class="dside" aria-label="Docs navigation">
+      <nav>
+        {nav.map((group) => (
+          <div class="dside__group">
+            <p class="dside__label">{group.label}</p>
+            <ul role="list">
+              {group.items.map((item) => (
+                <li>
+                  <a href={item.href} aria-current={here === item.href ? 'page' : undefined}>{item.title}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </aside>
+
+    <article class="doc-content">
+      <h1 class="doc-h1">{title}</h1>
+      {description && <p class="doc-lede">{description}</p>}
+      <slot />
+      <footer class="doc-foot">
+        <a href="/docs">← All docs</a>
+        <a href="https://github.com/fleetwrit/fleetwrit/edit/main/site/src/pages/docs">Edit this page</a>
+      </footer>
+    </article>
+  </div>
+</Base>
+
+<style is:global>
+  .dtop { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,0.85); backdrop-filter: saturate(140%) blur(12px); border-bottom: 1px solid var(--line); }
+  .dtop__inner { max-width: 1180px; margin-inline: auto; padding-inline: clamp(1.15rem, 4vw, 2rem); height: 60px; display: flex; align-items: center; justify-content: space-between; }
+  .dbrand { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; }
+  .dbrand__tag { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; color: var(--muted); background: var(--bg-soft); padding: 0.1rem 0.45rem; border-radius: var(--r-pill); letter-spacing: 0; }
+  .dtop__nav { display: flex; gap: 1.3rem; }
+  .dtop__nav a { color: var(--text); font-weight: 500; font-size: var(--t-sm); }
+  .dtop__nav a:hover { color: var(--ink); }
+
+  .dshell { max-width: 1180px; margin-inline: auto; padding-inline: clamp(1.15rem, 4vw, 2rem); display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start; }
+
+  .dside { position: sticky; top: 84px; padding-top: 2.4rem; }
+  .dside__group { margin-bottom: 1.4rem; }
+  .dside__label { font-size: var(--t-xs); font-weight: 700; color: var(--ink); margin: 0 0 0.5rem; }
+  .dside ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
+  .dside a { display: block; padding: 0.32rem 0.6rem; margin-left: -0.6rem; border-radius: 8px; color: var(--text); font-size: var(--t-sm); text-decoration: none; }
+  .dside a:hover { background: var(--bg-soft); color: var(--ink); }
+  .dside a[aria-current='page'] { background: var(--fill-blue); color: var(--accent-ink); font-weight: 600; }
+
+  .doc-content { padding-block: 2.4rem 4rem; min-width: 0; max-width: 46rem; }
+  .doc-h1 { font-size: clamp(2rem, 4vw, 2.6rem); margin: 0 0 0.5rem; letter-spacing: -0.025em; }
+  .doc-lede { font-size: var(--t-lg); color: var(--text); margin: 0 0 2rem; }
+
+  /* prose */
+  .doc-content h2 { font-size: 1.5rem; margin: 2.4rem 0 0.8rem; letter-spacing: -0.02em; scroll-margin-top: 84px; }
+  .doc-content h3 { font-size: 1.15rem; margin: 1.8rem 0 0.6rem; }
+  .doc-content p { margin: 0 0 1rem; max-width: none; }
+  .doc-content ul, .doc-content ol { margin: 0 0 1rem; padding-left: 1.3rem; display: grid; gap: 0.35rem; }
+  .doc-content li { line-height: 1.55; }
+  .doc-content a { font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-2); }
+  .doc-content a:hover { text-decoration-color: var(--accent); }
+  .doc-content strong { color: var(--ink); }
+  .doc-content code { font-family: var(--mono); font-size: 0.85em; background: var(--bg-soft); border: 1px solid var(--line); padding: 0.08rem 0.35rem; border-radius: 5px; }
+  .doc-content pre { background: #14161c; border-radius: 14px; padding: 1.1rem 1.25rem; overflow-x: auto; margin: 0 0 1.3rem; border: 1px solid #22252e; }
+  .doc-content pre code { background: none; border: none; padding: 0; font-size: 0.82rem; line-height: 1.7; }
+  .doc-content blockquote { margin: 0 0 1.3rem; padding: 0.6rem 1.1rem; border-left: 3px solid var(--accent); background: var(--fill-blue); border-radius: 0 10px 10px 0; color: var(--accent-ink); }
+  .doc-content blockquote p { margin: 0; }
+  .doc-content table { width: 100%; border-collapse: collapse; margin: 0 0 1.4rem; font-size: var(--t-sm); display: block; overflow-x: auto; }
+  .doc-content th, .doc-content td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .doc-content thead th { color: var(--muted); font-weight: 700; font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.05em; }
+  .doc-content hr { border: none; border-top: 1px solid var(--line); margin: 2.4rem 0; }
+
+  .doc-foot { display: flex; justify-content: space-between; gap: 1rem; margin-top: 3rem; padding-top: 1.4rem; border-top: 1px solid var(--line); font-size: var(--t-sm); }
+  .doc-foot a { color: var(--text); text-decoration: none; font-weight: 500; }
+  .doc-foot a:hover { color: var(--accent); }
+
+  @media (max-width: 820px) {
+    .dshell { grid-template-columns: 1fr; }
+    .dside { position: static; padding-top: 1.4rem; border-bottom: 1px solid var(--line); padding-bottom: 1rem; }
+    .dside nav { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 1.5rem; }
+    .dtop__nav a:not(:last-child) { display: none; }
+    .doc-content { padding-top: 1.6rem; }
+  }
+</style>

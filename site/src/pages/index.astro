@@ -1,0 +1,592 @@
+---
+import Base from '../layouts/Base.astro';
+import ApprovalCard from '../components/ApprovalCard.astro';
+import IntegrationGrid from '../components/IntegrationGrid.astro';
+import Roadmap from '../components/Roadmap.astro';
+import DashboardPanels from '../components/DashboardPanels.astro';
+import LogoMarquee from '../components/LogoMarquee.astro';
+import UseCases from '../components/UseCases.astro';
+
+const quickstart = 'pip install --pre fleetwrit';
+
+const problems = [
+  { mark: 'scattered', body: 'Approvals live in Slack threads and each framework’s own interrupts. No two of your agents ask the same way.' },
+  { mark: 'unowned', body: 'Nobody owns the queue, so an abandoned request can freeze an agent mid-task for hours.' },
+  { mark: 'unaccepted', body: 'The record sits in the agent team’s own database. That fails segregation of duties, and no auditor accepts it.' },
+];
+
+const steps = [
+  { verb: 'Define the action', body: 'Decorate the function once. The definition sets the fingerprint, the reviewer’s screen and the catalog entry.' },
+  { verb: 'Route to a queue', body: 'One call pauses the agent durably and routes the request to a named queue. It survives a process or server restart.' },
+  { verb: 'The assigned reviewer decides', body: 'Queue membership comes from your Okta or Entra groups, so the request reaches the right people. One signs in and approves the exact action.' },
+  { verb: 'Resume on a receipt', body: 'The agent resumes on that one decision, carrying a signed receipt your policy engine can verify.' },
+];
+
+const docs = [
+  { title: 'Quickstart', body: 'pip install to a first approved action in ten minutes.', href: '/docs/quickstart' },
+  { title: 'Defining actions', body: 'Risk, summaries, schemas, redaction, versioning.', href: '/docs/actions' },
+  { title: 'Asking a human', body: 'approve, input, choose; edits, expiry, idempotency.', href: '/docs/asking' },
+  { title: 'Policy engines', body: 'allow / deny / ask; OPA, Cedar, signed receipts.', href: '/docs/policy' },
+  { title: 'Integrations', body: 'LangGraph, LlamaIndex, OpenAI Agents, AgentCore.', href: '/docs/integrations' },
+  { title: 'Identity', body: 'Okta and Entra sign-in, group mapping, fresh sign-in.', href: '/docs/identity' },
+  { title: 'Operate', body: 'Deploy, back up, rotate keys, verify the ledger.', href: '/docs/operate' },
+  { title: 'Security model', body: 'Threat model, fail-closed behaviour, what it protects.', href: '/docs/security' },
+];
+
+const boundary = [
+  { cap: 'SDK, protocol, receipts', open: 'Everything', paid: 'Same' },
+  { cap: 'Dashboard', open: 'Overview, inbox, agents, catalog, ledger', paid: 'Multiple workspaces, delegated admin' },
+  { cap: 'Routing', open: 'Named queue, first decision wins', paid: 'Rules, escalation, schedules, SLAs' },
+  { cap: 'Identity', open: 'Okta & Entra, group mapping', paid: 'SCIM, authority limits, maker-checker' },
+  { cap: 'Ledger', open: 'Hash chain, verify, JSONL export', paid: 'External anchoring, evidence packs' },
+  { cap: 'Hosting', open: 'Self-hosted, community', paid: 'Hosted, enterprise, support SLA' },
+];
+
+const trust = [
+  { title: 'Fingerprint', body: 'Every action is hashed over its canonical form and recomputed on the server. Approval binds to one exact call — a changed argument is a different request.' },
+  { title: 'Signed receipt', body: 'Each decision carries a compact signed receipt: the fingerprint, the outcome, the IdP-verified reviewer. Your policy engine can demand proof a human approved this exact call.' },
+  { title: 'Hash-chained ledger', body: 'Payloads are hashed into the chain, not stored in it. Purge the content for privacy and the chain still verifies that the decision happened.' },
+];
+---
+<Base>
+  <a href="#main" class="sr-only">Skip to content</a>
+
+  <header class="masthead">
+    <div class="wrap masthead__inner">
+      <a class="brand" href="/" aria-label="Fleetwrit home">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="30" height="30"><rect x="0.75" y="0.75" width="30.5" height="30.5" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 16.4l4.4 4.4L23 10.8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="square"/></svg>
+        </span>
+        <span class="brand__name">Fleetwrit</span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#use-cases">Use cases</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#docs">Docs</a>
+        <a href="#pricing">Pricing</a>
+        <a href="https://github.com/fleetwrit/fleetwrit">GitHub</a>
+        <a class="btn btn--partner nav__cta" href="#partner">Become a design partner</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="wrap hero__grid">
+        <div class="hero__lede">
+          <h1 class="hero__title">Your agents shouldn’t make the big calls alone.</h1>
+          <p class="hero__deck">An agent hits a consequential action and stops. A named person approves it — signed in through your own identity provider — and the agent resumes, carrying a receipt anyone can verify. One trustworthy record of who allowed what, across every agent you run.</p>
+          <div class="hero__cta">
+            <a class="btn" href="#footer-quickstart">Run the quickstart</a>
+            <a class="btn btn--ghost btn--partner" href="#partner">Become a design partner</a>
+          </div>
+          <a class="btn--quiet hero__demo" href="#one-place">Open the live demo</a>
+        </div>
+        <div class="hero__stage">
+          <p class="hero__cue">
+            <svg viewBox="0 0 48 40" width="42" height="35" aria-hidden="true"><path d="M4 6 C 10 26, 26 34, 42 30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M42 30 l -9 -1 M42 30 l -4 -8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>You’re on call. Go on — approve it.</span>
+          </p>
+          <ApprovalCard />
+          <ul class="queue" role="list">
+            <li class="qitem">
+              <span class="qitem__body">
+                <span class="qitem__kind">refund.issue · finance-ops</span>
+                <span class="qitem__title">Issue refund of £4,000</span>
+                <span class="qitem__meta">reviewer may cut the amount before approving</span>
+              </span>
+              <span class="stamp stamp--amber">pending</span>
+            </li>
+            <li class="qitem">
+              <span class="qitem__body">
+                <span class="qitem__kind">data.delete · privacy</span>
+                <span class="qitem__title">Delete 2,410 customer records</span>
+                <span class="qitem__meta">irreversible · needs a fresh sign-in</span>
+              </span>
+              <span class="stamp stamp--red">critical</span>
+            </li>
+          </ul>
+          <p class="queue__note">Refunds, deletions, deploys, wires — anything an agent shouldn’t do unwatched.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logo marquee -->
+    <section class="strip">
+      <p class="strip__label">Wraps the pause-and-resume in the runtimes, directories and tools you already run</p>
+      <LogoMarquee />
+    </section>
+
+    <!-- Problem -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">The approvals your agents need have no home.</h2>
+          <p class="section__lede">Teams running agents across more than one stack cannot say who authorised a consequential action, why, and how long it waited.</p>
+        </div>
+        <ol class="ledger" role="list">
+          {problems.map((p) => (
+            <li class="ledger__row">
+              <span class="stamp stamp--red ledger__mark">{p.mark}</span>
+              <p class="ledger__body">{p.body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how" class="section section--soft">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">Stop for a human. Resume on their decision.</h2>
+          <p class="section__lede">Fleetwrit adds the queue, the identity and the record a single runtime cannot own. You change none of your checkpointing.</p>
+        </div>
+        <div class="how">
+          <ol class="steps" role="list">
+            {steps.map((s, i) => (
+              <li class="step">
+                <span class="step__n">{String(i + 1).padStart(2, '0')}</span>
+                <div class="step__text">
+                  <h3 class="step__verb">{s.verb}</h3>
+                  <p class="step__body">{s.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <figure class="listing">
+            <figcaption class="listing__cap"><span class="listing__dot" aria-hidden="true"></span>refund_agent.py</figcaption>
+            <pre class="listing__code"><code>{`@action(type="refund.issue", risk="high",
+        reversible=False, editable=["amount"])
+def issue_refund(charge, amount, currency):
+    return stripe.refunds.create(...)
+
+decision = fw.approve(
+    issue_refund.action(charge="ch_123",
+        amount=400000, currency="gbp"),
+)
+if decision.approved:
+    with decision.authorize():   # the approved action only
+        issue_refund(**decision.action.args)`}</code></pre>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use cases -->
+    <section id="use-cases" class="section section--ruled">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">Where teams put a human in the loop.</h2>
+          <p class="section__lede">Fleetwrit gates the consequential actions your agents already take. Pick a team to see the ones they hand to a person.</p>
+        </div>
+        <UseCases />
+      </div>
+    </section>
+
+    <!-- One place -->
+    <section id="one-place" class="section">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">One place the whole organisation trusts.</h2>
+          <p class="section__lede">“Who approved the refund on order 5531?” is one search. Every agent, every gated action type and every pending decision, on the first screen.</p>
+        </div>
+        <DashboardPanels />
+      </div>
+    </section>
+
+    <!-- Integrations -->
+    <section id="integrations" class="section section--soft">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">Works with the stack you already run.</h2>
+          <p class="section__lede">Fleetwrit signs people in through your IdP and takes verdicts from your policy engine. Vote on what comes next.</p>
+        </div>
+        <IntegrationGrid />
+      </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">Built on evidence, not guesses.</h2>
+          <p class="section__lede">Each item moves earlier only when a live design partner cannot proceed without it.</p>
+        </div>
+        <Roadmap />
+      </div>
+    </section>
+
+    <!-- Docs -->
+    <section id="docs" class="section section--soft">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">Start with the docs.</h2>
+          <p class="section__lede">Every guide ships with the feature it documents. Each code sample is extracted and run against a live local server in CI.</p>
+        </div>
+        <div class="docs">
+          {docs.map((d) => (
+            <a class="doc-entry" href={d.href}>
+              <span class="doc-entry__t">{d.title}</span>
+              <span class="doc-entry__b">{d.body}</span>
+              <span class="doc-entry__go" aria-hidden="true">Read</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Pull quote -->
+    <section class="section quote-section">
+      <div class="wrap wrap--narrow">
+        <blockquote class="quote">“We could use our framework’s own approval feature, but we still need this because it tells the organisation who authorised exactly what, across all our agents.”</blockquote>
+        <p class="quote__by">The milestone Fleetwrit is built to earn — from a production team, not a launch post.</p>
+      </div>
+    </section>
+
+    <!-- Open source and paid -->
+    <section class="section section--soft">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">Open source records and displays.</h2>
+          <p class="section__lede">Everything in the MVP is Apache-2.0 and self-hosted. The line is drawn by operations, not team size: the paid control plane routes, enforces and proves.</p>
+        </div>
+        <div class="boundary" role="table">
+          <div class="boundary__row boundary__row--head" role="row">
+            <span role="columnheader">Capability</span><span role="columnheader">Open source</span><span role="columnheader">Paid control plane</span>
+          </div>
+          {boundary.map((row) => (
+            <div class="boundary__row" role="row">
+              <span class="boundary__cap" role="cell">{row.cap}</span>
+              <span class="boundary__open" role="cell"><span class="stamp stamp--green boundary__tag">open</span>{row.open}</span>
+              <span class="boundary__paid" role="cell">{row.paid}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="section">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">Priced by active agents. Never by approvals.</h2>
+          <p class="section__lede">Unlimited reviewers, auditors and risk staff on every plan.</p>
+        </div>
+        <div class="plans">
+          <article class="plan">
+            <h3 class="plan__name">Community</h3>
+            <p class="plan__price">Free<span>forever</span></p>
+            <p class="plan__body">Everything in the MVP, self-hosted, Apache-2.0.</p>
+            <a class="btn btn--ghost plan__cta" href="#footer-quickstart">Run the quickstart</a>
+          </article>
+          <article class="plan plan--feature">
+            <span class="plan__tag">Recruiting now</span>
+            <h3 class="plan__name">Design partner</h3>
+            <p class="plan__price">£1–2k<span>/ mo · 6 months</span></p>
+            <p class="plan__body">Community, plus a direct line to the founder, roadmap influence and a locked discount later.</p>
+            <a class="btn btn--light btn--partner plan__cta" href="#partner">Apply to the programme</a>
+          </article>
+          <article class="plan">
+            <h3 class="plan__name">Enterprise</h3>
+            <p class="plan__price">Talk to us</p>
+            <p class="plan__body">Coming: routing, authority limits, maker-checker, SCIM, evidence packs, multi-workspace, support SLA.</p>
+            <a class="btn btn--ghost plan__cta" href="#partner">Start a conversation</a>
+          </article>
+        </div>
+        <p class="plans__note">Prices are indicative — a working hypothesis we’re validating with design partners, not a committed rate card.</p>
+      </div>
+    </section>
+
+    <!-- Trust -->
+    <section class="section section--soft">
+      <div class="wrap">
+        <div class="section__head">
+          <h2 class="section__title">How the record earns an auditor’s trust.</h2>
+        </div>
+        <div class="trust">
+          {trust.map((t, i) => (
+            <article class="trust__item">
+              <span class="trust__no" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <h3 class="trust__t">{t.title}</h3>
+              <p class="trust__b">{t.body}</p>
+            </article>
+          ))}
+        </div>
+        <p class="trust__link"><a href="https://github.com/fleetwrit/fleetwrit/blob/main/SECURITY.md">Read the security model</a></p>
+      </div>
+    </section>
+
+    <!-- Design-partner form -->
+    <section id="partner" class="section">
+      <div class="wrap partner">
+        <div class="partner__pitch">
+          <h2 class="section__title">Become a design partner.</h2>
+          <p class="section__lede">We’re recruiting platform and SRE teams running agentic remediation across more than one runtime.</p>
+          <ul class="partner__list" role="list">
+            <li>About 20 genuine human interrupts a week, or fewer where each carries real consequence.</li>
+            <li>Three named people: a technical owner, a reviewer lead, a commercial sponsor.</li>
+            <li>30 minutes a week, one production workflow, an honest pricing conversation in week six.</li>
+          </ul>
+        </div>
+        <form class="form" action="mailto:partners@fleetwrit.dev" method="post" enctype="text/plain">
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="email">Work email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="company">Company</label>
+            <input id="company" name="company" type="text" autocomplete="organization" required />
+          </div>
+          <div class="field">
+            <label for="runtime">Agent runtime</label>
+            <select id="runtime" name="runtime">
+              <option>LangGraph / LangChain</option>
+              <option>OpenAI Agents SDK</option>
+              <option>LlamaIndex Workflows</option>
+              <option>Amazon Bedrock AgentCore</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field field--wide">
+            <label for="workflow">The one workflow you would gate first</label>
+            <textarea id="workflow" name="workflow" rows="3"></textarea>
+          </div>
+          <button class="btn form__submit" type="submit">Send application</button>
+          <p class="form__note">Opens your mail client. Or write to <a href="mailto:partners@fleetwrit.dev">partners@fleetwrit.dev</a>.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer CTA -->
+  <section id="footer-quickstart" class="cta">
+    <div class="wrap cta__inner">
+      <h2 class="cta__title">Ten minutes from install to a first approved action.</h2>
+      <div class="copybox" data-copy={quickstart}>
+        <code class="copybox__cmd">{quickstart}</code>
+        <button class="copybox__btn" type="button" aria-label="Copy the quickstart command">Copy</button>
+      </div>
+      <div class="cta__buttons">
+        <a class="btn btn--light" href="https://github.com/fleetwrit/fleetwrit">Star on GitHub</a>
+        <a class="btn btn--partner cta__ghost" href="#partner">Become a design partner</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap foot__inner">
+      <span class="foot__brand">Fleetwrit</span>
+      <nav class="foot__links" aria-label="Footer">
+        <a href="https://github.com/fleetwrit/fleetwrit">GitHub</a>
+        <a href="/docs">Docs</a>
+        <a href="#partner">Design partners</a>
+        <a href="mailto:security@fleetwrit.dev">Report a vulnerability</a>
+      </nav>
+      <span class="foot__legal">Apache-2.0 · The written authority over what your agent fleet may do.</span>
+    </div>
+  </footer>
+
+  <script>
+    const box = document.querySelector<HTMLElement>('.copybox');
+    const btn = box?.querySelector<HTMLButtonElement>('.copybox__btn');
+    btn?.addEventListener('click', async () => {
+      const cmd = box?.dataset.copy ?? '';
+      try {
+        await navigator.clipboard.writeText(cmd);
+        const prev = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = prev; }, 1600);
+      } catch { btn.textContent = 'Press ⌘C'; }
+    });
+  </script>
+</Base>
+
+<style>
+  /* ---- masthead ---- */
+  .masthead { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: saturate(130%) blur(10px); border-bottom: 1px solid var(--line); }
+  .masthead__inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+  .brand { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--ink); }
+  .brand__mark { display: inline-flex; color: var(--accent); }
+  .brand__name { font-family: var(--display); font-weight: 760; font-size: 1.3rem; letter-spacing: -0.02em; font-variation-settings: 'wght' 760, 'wdth' 112; }
+  .nav { display: flex; align-items: center; gap: 1.5rem; }
+  .nav a:not(.nav__cta) { color: var(--text); font-weight: 500; font-size: var(--t-sm); }
+  .nav a:not(.nav__cta):hover { color: var(--ink); }
+  .nav__cta { padding: 0.58rem 1rem; }
+  @media (max-width: 900px) { .nav a:not(.nav__cta) { display: none; } }
+
+  /* ---- hero ---- */
+  .hero { position: relative; padding-block: clamp(3rem, 7vw, 5.5rem); border-bottom: 1px solid var(--line); overflow: hidden; }
+  .hero__grid { position: relative; display: grid; grid-template-columns: 1.06fr 0.94fr; gap: clamp(1.8rem, 5vw, 4rem); align-items: center; }
+  .hero__grid::after { content: ''; position: absolute; top: 0; bottom: 0; left: 55.5%; width: 1px; background: var(--line); z-index: 0; }
+  .hero__lede, .hero__stage { position: relative; z-index: 1; }
+  .hero__title { font-family: var(--display); font-size: var(--t-3xl); font-weight: 400; letter-spacing: -0.01em; line-height: 1.02; margin: 0 0 1.3rem; text-wrap: balance; }
+  .hero__deck { font-size: var(--t-lg); color: var(--text); max-width: 42ch; margin: 0; line-height: 1.5; }
+  .hero__cta { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.9rem; }
+  .hero__demo { display: inline-block; margin-top: 1rem; }
+
+  /* the stage: a slip dropped on ruled paper, with a scrawled cue */
+  .hero__stage { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 2.4rem; }
+  .hero__stage::before {
+    content: ''; position: absolute; inset: -2rem -2rem -3rem; z-index: 0;
+    background-image: repeating-linear-gradient(to bottom, transparent 0 25px, var(--line) 25px 26px);
+    -webkit-mask-image: radial-gradient(120% 90% at 60% 45%, #000 45%, transparent 78%);
+    mask-image: radial-gradient(120% 90% at 60% 45%, #000 45%, transparent 78%);
+    opacity: 0.5;
+  }
+  .hero__stage :global(.crt) { position: relative; z-index: 1; transform: rotate(-1.5deg); transition: transform 220ms cubic-bezier(.2,1,.4,1); }
+  .hero__stage:hover :global(.crt) { transform: rotate(0deg); }
+  .hero__cue {
+    position: absolute; z-index: 2; top: -0.4rem; left: clamp(0rem, 3vw, 1.5rem);
+    display: flex; align-items: center; gap: 0.5rem; margin: 0; transform: rotate(-3deg);
+    font-family: var(--mono); font-size: var(--t-xs); color: var(--accent);
+  }
+  .hero__cue svg { color: var(--accent); transform: scaleX(-1); flex: none; }
+
+  /* the rest of the queue: more of what agents stop for */
+  .queue { position: relative; z-index: 1; list-style: none; margin: 0.85rem 0 0; padding: 0; width: 100%; max-width: 404px; display: grid; gap: 0.6rem; }
+  .qitem { display: flex; align-items: center; justify-content: space-between; gap: 0.9rem; padding: 0.7rem 0.95rem; background: var(--card); border: 1px solid var(--line-2); border-radius: var(--r-lg); }
+  .qitem:nth-child(1) { transform: rotate(0.7deg); }
+  .qitem:nth-child(2) { transform: rotate(-0.6deg); }
+  .qitem__body { display: grid; gap: 0.12rem; min-width: 0; }
+  .qitem__kind { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+  .qitem__title { font-family: var(--display); font-size: 1.05rem; color: var(--ink); letter-spacing: -0.01em; line-height: 1.1; }
+  .qitem__meta { font-family: var(--mono); font-size: 0.66rem; color: var(--muted); }
+  .queue__note { position: relative; z-index: 1; width: 100%; max-width: 404px; margin: 0.95rem 0 0; font-size: var(--t-xs); color: var(--muted); text-align: center; line-height: 1.4; }
+
+  @media (max-width: 900px) {
+    .hero__grid { grid-template-columns: 1fr; }
+    .hero__grid::after { display: none; }
+    .hero__stage { margin-top: 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__stage :global(.crt) { transition: none; }
+  }
+
+  /* ---- logo marquee band ---- */
+  .strip { padding-block: clamp(1.6rem, 3vw, 2.3rem); border-bottom: 1px solid var(--line); }
+  .strip__label { text-align: center; color: var(--muted); font-size: var(--t-sm); margin: 0 0 1.2rem; padding-inline: var(--gutter); }
+
+  /* ---- section head ---- */
+  .section__head { max-width: 52rem; }
+
+  /* ---- problem: a ledger of failures ---- */
+  .ledger { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-2); max-width: 60rem; }
+  .ledger__row { display: grid; grid-template-columns: 8.5rem 1fr; gap: 1.5rem; align-items: baseline; padding: 1.15rem 0; border-bottom: 1px solid var(--line); }
+  .ledger__mark { align-self: start; }
+  .ledger__body { margin: 0; font-size: var(--t-lg); color: var(--ink); line-height: 1.45; max-width: 46ch; }
+  @media (max-width: 620px) { .ledger__row { grid-template-columns: 1fr; gap: 0.6rem; } }
+
+  /* ---- how it works ---- */
+  .how { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 4vw, 3.2rem); align-items: start; }
+  .steps { list-style: none; margin: 0; padding: 0; }
+  .step { display: grid; grid-template-columns: 3rem 1fr; gap: 1rem; padding: 1.05rem 0; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; padding-top: 0; }
+  .step__n { font-family: var(--mono); font-size: 0.8rem; color: var(--accent); font-feature-settings: 'tnum'; padding-top: 0.3rem; }
+  .step__verb { font-size: var(--t-lg); margin: 0 0 0.25rem; letter-spacing: -0.01em; }
+  .step__body { margin: 0; color: var(--text); font-size: var(--t-sm); }
+  .listing { margin: 0; border: 1px solid var(--line-2); border-radius: var(--r-lg); overflow: hidden; background: var(--card); position: sticky; top: 88px; }
+  .listing__cap { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: var(--t-xs); color: var(--muted); padding: 0.6rem 1rem; border-bottom: 1px solid var(--line); }
+  .listing__dot { width: 7px; height: 7px; border-radius: 2px; background: var(--accent); }
+  .listing__code { margin: 0; padding: 1.1rem 1.2rem; overflow-x: auto; font-family: var(--mono); font-size: 0.82rem; line-height: 1.7; color: var(--ink); tab-size: 2; }
+  @media (max-width: 900px) { .how { grid-template-columns: 1fr; } .listing { position: static; } }
+
+  /* ---- docs entries ---- */
+  .docs { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line-2); border-radius: var(--r-lg); overflow: hidden; background: var(--card); }
+  .doc-entry { display: grid; gap: 0.25rem; padding: 1.15rem 1.25rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--ink); position: relative; transition: background 130ms ease; }
+  .doc-entry:hover { background: var(--bg-soft); }
+  .doc-entry:nth-child(2n) { border-right: none; }
+  .doc-entry__t { font-family: var(--display); font-weight: 650; font-size: 1.05rem; }
+  .doc-entry__b { font-size: var(--t-sm); color: var(--text); }
+  .doc-entry__go { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); margin-top: 0.2rem; }
+  @media (max-width: 620px) { .docs { grid-template-columns: 1fr; } .doc-entry { border-right: none; } }
+
+  /* ---- pull quote ---- */
+  .quote-section { text-align: left; }
+  .quote { margin: 0; font-family: var(--display); font-size: clamp(1.6rem, 3.6vw, 2.5rem); line-height: 1.2; font-weight: 620; color: var(--ink); letter-spacing: -0.025em; max-width: 24ch; padding-top: 1.4rem; border-top: 2px solid var(--ink); }
+  .quote__by { margin: 1.4rem 0 0; color: var(--muted); font-size: var(--t-sm); font-family: var(--mono); }
+
+  /* ---- boundary register ---- */
+  .boundary { border: 1px solid var(--line-2); border-radius: var(--r-lg); overflow: hidden; background: var(--card); }
+  .boundary__row { display: grid; grid-template-columns: 1.1fr 1.5fr 1.5fr; gap: 1rem; padding: 0.9rem 1.3rem; border-top: 1px solid var(--line); font-size: var(--t-sm); align-items: baseline; }
+  .boundary__row:first-child { border-top: none; }
+  .boundary__row--head { background: var(--bg-soft); font-family: var(--mono); font-weight: 500; color: var(--muted); font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.06em; }
+  .boundary__cap { font-weight: 700; color: var(--ink); }
+  .boundary__open { display: flex; align-items: baseline; gap: 0.5rem; color: var(--ink); }
+  .boundary__tag { flex: none; transform: translateY(1px); }
+  .boundary__paid { color: var(--text); }
+  @media (max-width: 720px) {
+    .boundary__row { grid-template-columns: 1fr; gap: 0.25rem; }
+    .boundary__row--head { display: none; }
+    .boundary__cap { margin-bottom: 0.15rem; }
+  }
+
+  /* ---- pricing slips ---- */
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: stretch; }
+  .plan { background: var(--card); border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 1.7rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .plan--feature { background: var(--accent); border-color: var(--accent); color: #eef0ff; position: relative; }
+  .plan--feature .plan__name, .plan--feature .plan__price { color: #fff; }
+  .plan--feature .plan__body { color: #cfd0f6; }
+  .plan--feature .plan__price span { color: #b7b8ee; }
+  .plan__tag { position: absolute; top: 1.3rem; right: 1.3rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); background: #fff; padding: 0.22rem 0.5rem; border-radius: var(--r); }
+  .plan__name { font-size: var(--t-xl); margin: 0; }
+  .plan__price { font-family: var(--display); font-size: 2rem; font-weight: 760; color: var(--ink); margin: 0.15rem 0 0.35rem; letter-spacing: -0.03em; font-feature-settings: 'tnum'; }
+  .plan__price span { display: inline-block; font-family: var(--sans); font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-left: 0.4rem; letter-spacing: 0; }
+  .plan__body { color: var(--text); font-size: var(--t-sm); flex: 1; }
+  .plan__cta { margin-top: 0.7rem; width: 100%; }
+  .plans__note { margin: 1.4rem 0 0; text-align: center; color: var(--muted); font-size: var(--t-xs); font-family: var(--mono); }
+  @media (max-width: 820px) { .plans { grid-template-columns: 1fr; } }
+
+  /* ---- trust ---- */
+  .trust { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--line-2); }
+  .trust__item { padding: 1.6rem 1.5rem 1.6rem 0; border-right: 1px solid var(--line); }
+  .trust__item:last-child { border-right: none; padding-right: 0; }
+  .trust__no { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); font-feature-settings: 'tnum'; }
+  .trust__t { font-size: var(--t-lg); margin: 0.5rem 0 0.4rem; }
+  .trust__b { margin: 0; color: var(--text); font-size: var(--t-sm); }
+  .trust__link { margin: 1.8rem 0 0; }
+  .trust__link a { font-weight: 600; font-family: var(--mono); font-size: var(--t-sm); }
+  @media (max-width: 820px) { .trust { grid-template-columns: 1fr; } .trust__item { border-right: none; border-bottom: 1px solid var(--line); padding: 1.3rem 0; } .trust__item:last-child { border-bottom: none; } }
+
+  /* ---- partner form ---- */
+  .partner { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 5vw, 4rem); align-items: start; }
+  .partner__list { margin: 1.3rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.8rem; }
+  .partner__list li { padding-left: 1.7rem; position: relative; color: var(--text); font-size: var(--t-sm); }
+  .partner__list li::before { content: ''; position: absolute; left: 0; top: 0.2em; width: 15px; height: 15px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 8.5l3.5 3.5L13.5 4' fill='none' stroke='%231C6B49' stroke-width='2.2' stroke-linecap='square'/%3E%3C/svg%3E") no-repeat center / contain; }
+  .form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; background: var(--card); border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 1.6rem; }
+  .field { display: grid; gap: 0.35rem; }
+  .field--wide { grid-column: 1 / -1; }
+  .field label { font-size: var(--t-xs); font-weight: 600; color: var(--text); }
+  .field input, .field select, .field textarea { font-family: var(--sans); font-size: var(--t-sm); color: var(--ink); padding: 0.62rem 0.72rem; border: 1px solid var(--line-2); border-radius: var(--r); background: var(--bg); width: 100%; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); outline: none; }
+  .form__submit { grid-column: 1 / -1; justify-self: start; }
+  .form__note { grid-column: 1 / -1; font-size: var(--t-xs); color: var(--muted); margin: 0; }
+  @media (max-width: 860px) { .partner { grid-template-columns: 1fr; } }
+
+  /* ---- footer CTA ---- */
+  .cta { padding-block: clamp(3rem, 7vw, 5rem); }
+  .cta__inner { background: var(--ink); border-radius: var(--r-lg); padding: clamp(2.4rem, 6vw, 4rem); text-align: center; color: #e7e8ec; }
+  .cta__title { color: #fff; font-size: var(--t-2xl); max-width: 20ch; margin: 0 auto 1.6rem; }
+  .copybox { display: inline-flex; align-items: stretch; border-radius: var(--r); overflow: hidden; border: 1px solid #33353d; background: #0d0e12; }
+  .copybox__cmd { font-family: var(--mono); font-size: var(--t-sm); color: #e7e8ec; padding: 0.72rem 1.1rem; display: flex; align-items: center; }
+  .copybox__btn { font-family: var(--sans); font-weight: 700; font-size: var(--t-sm); color: #15171c; background: #fff; border: none; padding: 0 1.2rem; cursor: pointer; }
+  .copybox__btn:hover { background: #e7e8ec; }
+  .cta__buttons { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; margin-top: 1.8rem; }
+  .cta__ghost { background: var(--accent); border-color: var(--accent); }
+  .cta__ghost:hover { background: #3c38c4; border-color: #3c38c4; }
+
+  /* ---- footer ---- */
+  .foot { border-top: 1px solid var(--line); padding-block: 2rem; }
+  .foot__inner { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.6rem; justify-content: space-between; }
+  .foot__brand { font-family: var(--display); font-weight: 760; font-size: 1.1rem; color: var(--ink); letter-spacing: -0.02em; }
+  .foot__links { display: flex; flex-wrap: wrap; gap: 1.3rem; }
+  .foot__links a { color: var(--text); font-weight: 500; font-size: var(--t-sm); }
+  .foot__links a:hover { color: var(--ink); }
+  .foot__legal { color: var(--muted); font-size: var(--t-xs); }
+</style>

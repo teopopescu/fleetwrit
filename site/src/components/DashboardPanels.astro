@@ -1,0 +1,175 @@
+---
+// Illustrative renderings of the open-source dashboard, styled as the product
+// will look from `fleetwrit dev` seeded data. These are representations, not
+// live screenshots — the real captures replace them once `fleetwrit dev` exists.
+const ledger = [
+  { seq: 4192, event: 'decision.made', actor: 'marcus@acme.com', ref: 'req_01J8ZK · v41→v42' },
+  { seq: 4191, event: 'request.viewed', actor: 'marcus@acme.com', ref: 'req_01J8ZK' },
+  { seq: 4190, event: 'request.created', actor: 'sre-remediation', ref: 'deploy.rollback' },
+  { seq: 4189, event: 'policy.verdict', actor: 'opa', ref: 'ask · payments-api' },
+];
+const agents = [
+  { id: 'sre-remediation', env: 'prod', runtime: 'LangGraph', gated: '3 / 4' },
+  { id: 'support-refunds', env: 'prod', runtime: 'OpenAI Agents', gated: '2 / 2' },
+  { id: 'ap-invoices', env: 'staging', runtime: 'LlamaIndex', gated: '1 / 3' },
+];
+---
+<div class="panels">
+  <!-- Overview -->
+  <figure class="panel panel--wide">
+    <figcaption class="panel__head">
+      <span class="panel__name">Overview</span>
+      <span class="chip chip--ok">Ledger chain intact</span>
+    </figcaption>
+    <div class="stats">
+      <div class="stat">
+        <span class="stat__num">7</span>
+        <span class="stat__label">Pending now</span>
+        <span class="stat__sub">2 high · oldest 6m</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num">38</span>
+        <span class="stat__label">Human min / 1,000 tasks</span>
+        <span class="stat__sub"><svg class="stat__trend" viewBox="0 0 10 10" width="9" height="9" aria-hidden="true"><path d="M5 1v6.5M2 5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>21% vs baseline</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num">312</span>
+        <span class="stat__label">Decisions, last 7 days</span>
+        <span class="stat__sub">96% approved · 1% expired</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num">1</span>
+        <span class="stat__label">Undeclared action</span>
+        <span class="stat__sub stat__sub--flag">governance gap</span>
+      </div>
+    </div>
+  </figure>
+
+  <!-- Agents -->
+  <figure class="panel">
+    <figcaption class="panel__head"><span class="panel__name">Agents</span></figcaption>
+    <table class="mini">
+      <thead>
+        <tr><th>Agent</th><th>Runtime</th><th>Gated</th></tr>
+      </thead>
+      <tbody>
+        {agents.map((a) => (
+          <tr>
+            <td><span class="mini__id">{a.id}</span><span class="mini__env">{a.env}</span></td>
+            <td>{a.runtime}</td>
+            <td>{a.gated}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </figure>
+
+  <!-- Ledger -->
+  <figure class="panel">
+    <figcaption class="panel__head">
+      <span class="panel__name">Ledger</span>
+      <span class="chip chip--ok"><svg class="chip__tick" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2 6.5l2.6 2.6L10 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>verified</span>
+    </figcaption>
+    <ol class="events" role="list">
+      {ledger.map((e) => (
+        <li class="event">
+          <span class="event__seq">{e.seq}</span>
+          <span class="event__evt">{e.event}</span>
+          <span class="event__ref">{e.actor} · {e.ref}</span>
+        </li>
+      ))}
+    </ol>
+  </figure>
+</div>
+<p class="panels__note">Illustrative rendering of the open-source dashboard. Real captures come from <code>fleetwrit dev</code> seeded data.</p>
+
+<style>
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.1rem;
+  }
+  .panel {
+    margin: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel--wide { grid-column: 1 / -1; }
+  .panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel__name { font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: var(--r-pill);
+    background: #f0f1f5;
+    color: var(--muted);
+  }
+  .chip__tick { flex: none; }
+  .chip--ok { color: var(--ok); background: var(--fill-mint); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .stat {
+    padding: 1.2rem 1.2rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    border-right: 1px solid var(--line);
+  }
+  .stat:last-child { border-right: none; }
+  .stat__num { font-size: 2.4rem; line-height: 1; font-weight: 700; color: var(--ink); letter-spacing: -0.03em; }
+  .stat__label { font-size: var(--t-xs); color: var(--text); margin-top: 0.45rem; font-weight: 500; }
+  .stat__sub { display: inline-flex; align-items: center; gap: 0.28rem; font-size: 0.7rem; color: var(--muted); }
+  .stat__trend { flex: none; }
+  .stat__sub--flag { color: var(--warn); }
+
+  .mini { width: 100%; border-collapse: collapse; font-size: var(--t-xs); }
+  .mini th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 0.55rem 1.1rem;
+    font-size: 0.72rem;
+  }
+  .mini td { padding: 0.6rem 1.1rem; border-top: 1px solid var(--line); vertical-align: top; }
+  .mini__id { display: block; font-family: var(--mono); color: var(--ink); }
+  .mini__env { font-size: 0.66rem; color: var(--muted); }
+
+  .events { list-style: none; margin: 0; padding: 0.3rem 0; }
+  .event {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.1rem 0.7rem;
+    padding: 0.5rem 1.1rem;
+    border-top: 1px solid var(--line);
+    font-size: var(--t-xs);
+  }
+  .event:first-child { border-top: none; }
+  .event__seq { grid-row: span 2; font-family: var(--mono); color: var(--muted); align-self: center; }
+  .event__evt { font-family: var(--mono); color: var(--accent-ink); }
+  .event__ref { color: var(--text); }
+
+  .panels__note { font-size: var(--t-xs); color: var(--muted); margin: 1rem 0 0; text-align: center; }
+  .panels__note code { font-family: var(--mono); }
+
+  @media (max-width: 640px) {
+    .panels { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
+  }
+</style>

@@ -1,0 +1,63 @@
+---
+// Now / Next / Later, rendered from the same data file as the integrations grid.
+import data from '../data/integrations.json';
+const columns = [
+  { key: 'now', title: 'Now', note: 'Pilot Core — one partner in production' },
+  { key: 'next', title: 'Next', note: 'Built only when a live partner is blocked' },
+  { key: 'later', title: 'Later', note: 'After two teams need it and one pays' },
+] as const;
+---
+<ol class="road" role="list">
+  {columns.map((col) => (
+    <li class={`road__col road__col--${col.key}`}>
+      <h3 class="road__title">{col.title}</h3>
+      <p class="road__note">{col.note}</p>
+      <ul class="road__items" role="list">
+        {data.roadmap[col.key].map((item) => <li>{item}</li>)}
+      </ul>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .road {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.2rem;
+  }
+  .road__col {
+    padding: 1.4rem 1.5rem 1.7rem;
+    background: var(--card);
+    border: 1px solid var(--line-2);
+    border-radius: var(--r-lg);
+  }
+  .road__title { font-size: var(--t-xl); margin: 0 0 0.2rem; display: flex; align-items: center; gap: 0.5rem; }
+  .road__title::before { content: ''; width: 9px; height: 9px; border-radius: 2px; background: var(--accent); flex: none; }
+  .road__col--next .road__title::before { background: var(--stamp-amber); }
+  .road__col--later .road__title::before { background: var(--muted); }
+  .road__note { font-size: var(--t-xs); color: var(--muted); margin: 0 0 1.1rem; }
+  .road__items { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.75rem; }
+  .road__items li {
+    font-size: var(--t-sm);
+    line-height: 1.45;
+    padding-left: 1.4rem;
+    position: relative;
+    color: var(--text);
+  }
+  .road__items li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.7;
+  }
+  .road__col--next .road__items li::before { background: var(--warn); }
+  .road__col--later .road__items li::before { background: var(--muted); }
+</style>

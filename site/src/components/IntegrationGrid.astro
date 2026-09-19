@@ -1,0 +1,119 @@
+---
+// Renders the integrations grid from src/data/integrations.json — the same file
+// that drives the roadmap, the docs index and the dashboard settings page.
+// Shipping an integration is a one-field change here.
+import data from '../data/integrations.json';
+const repo = 'https://github.com/fleetwrit/fleetwrit/issues';
+const label: Record<string, string> = {
+  available: 'Available',
+  next: 'Next',
+  planned: 'Planned',
+};
+// Brand marks in /public/logos (monochrome SVGs). Integrations without an
+// official brand icon fall back to a lettered chip.
+const logoFor: Record<string, string> = {
+  'LangGraph / LangChain': 'langchain',
+  'OpenAI Agents SDK': 'openai',
+  'Amazon Bedrock AgentCore': 'aws',
+  'CrewAI': 'crewai',
+  'Claude Agent SDK': 'anthropic',
+  'Microsoft Agent Framework': 'microsoft',
+  'Google ADK': 'google',
+  'Temporal': 'temporal',
+  'Pydantic AI': 'pydantic',
+  'Okta': 'okta',
+  'Microsoft Entra ID': 'entra',
+  'Google sign-in (development)': 'google',
+  'Keycloak / Dex': 'keycloak',
+  'Google Workspace groups': 'googlecloud',
+  'Auth0': 'auth0',
+  'Python predicate': 'python',
+  'Slack (incoming webhook)': 'slack',
+  'Microsoft Teams app': 'teams',
+  'PagerDuty': 'pagerduty',
+  'Slack interactive approvals': 'slack',
+};
+---
+<div class="integ">
+  {data.groups.map((group) => (
+    <section class="integ__group" aria-labelledby={`ig-${group.id}`}>
+      <h3 id={`ig-${group.id}`} class="integ__label">{group.label}</h3>
+      <ul class="integ__list" role="list">
+        {group.items.map((item) => {
+          const votable = item.status !== 'available' && item.issue;
+          const Tag = votable ? 'a' : 'div';
+          const href = votable ? `${repo}/${item.issue}` : undefined;
+          return (
+            <li>
+              <Tag class={`tile tile--${item.status}`} href={href}>
+                <span class="tile__row">
+                  <span class="tile__id">
+                    {logoFor[item.name]
+                      ? <img class="tile__logo" src={`/logos/${logoFor[item.name]}.svg`} alt="" width="20" height="20" loading="lazy" />
+                      : <span class="tile__glyph" aria-hidden="true">{item.name.charAt(0)}</span>}
+                    <span class="tile__name">{item.name}</span>
+                  </span>
+                  <span class={`badge badge--${item.status}`}>{label[item.status]}</span>
+                </span>
+                {votable && <span class="tile__vote">Vote on GitHub →</span>}
+              </Tag>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  ))}
+  <a class="tile tile--request" href={`${repo}/new?labels=integration-request`}>
+    <span class="tile__name">Request an integration</span>
+    <span class="tile__vote">Open an issue and we route it into the roadmap</span>
+  </a>
+</div>
+
+<style>
+  .integ { display: grid; gap: 2.4rem; }
+  .integ__group { display: grid; gap: 1rem; }
+  .integ__label {
+    font-size: var(--t-lg);
+    font-weight: 700;
+    margin: 0;
+    text-align: center;
+    color: var(--ink);
+  }
+  .integ__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+    gap: 0.7rem;
+  }
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.9rem 1.05rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    text-decoration: none;
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  }
+  a.tile:hover { border-color: var(--line-2); box-shadow: var(--shadow); transform: translateY(-2px); }
+  .tile__row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .tile__id { display: inline-flex; align-items: center; gap: 0.55rem; min-width: 0; }
+  .tile__logo { width: 20px; height: 20px; object-fit: contain; opacity: 0.78; flex: none; }
+  .tile__glyph { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: var(--fill-lilac); color: var(--accent-ink); font-size: 0.7rem; font-weight: 800; flex: none; }
+  .tile__name { font-weight: 600; font-size: var(--t-sm); line-height: 1.25; }
+  .tile__vote { font-size: var(--t-xs); color: var(--muted); }
+  .tile--request {
+    grid-column: 1 / -1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    border-style: dashed;
+    background: var(--bg-soft);
+    box-shadow: none;
+  }
+</style>

@@ -88,9 +88,9 @@ def seed_demo(store: Any) -> None:
     # a little decided history (for overview counts + the ledger)
     hist1 = store.create_request(_payload("support-refunds", "prod", "refund.issue", "c3", "stripe.refunds.create",
         {"charge": "ch_884", "amount": 400000, "currency": "gbp"}, "Refund £4,000 on charge ch_884",
-        "finance-ops", {"ticket": "ZD-99044"}, False, 90, 30))
+        "finance-ops", {"ticket": "ZD-99044"}, False, 90, 240))
     store.decide(hist1["id"], "approved", {"amount": 50000}, "Approved at £500 per policy cap", reviewer)
     hist2 = store.create_request(_payload("sre-remediation", "prod", "deploy.rollback", "a1", "kubectl.rollout.undo",
         {"service": "search-indexer", "version": 12}, "Roll back search-indexer to version 12",
-        "sre-oncall", {"alert": "PD-4460"}, False, 120, 30))
+        "sre-oncall", {"alert": "PD-4460"}, False, 120, 240))
     store.decide(hist2["id"], "rejected", None, "Prefer forward-fix; rollback drops the new index", reviewer)

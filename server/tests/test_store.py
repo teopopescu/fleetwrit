@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from fleetwrit_server.seed import seed_demo
 from fleetwrit_server.store import Store
 
 
@@ -65,3 +66,12 @@ def test_ledger_timestamp_tamper_detected(tmp_path) -> None:
     with store._cx() as c:
         c.execute("UPDATE ledger SET ts='2000-01-01T00:00:00Z' WHERE seq=(SELECT MAX(seq) FROM ledger)")
     assert store.verify_chain()["ok"] is False
+
+
+def test_seed_demo_completes_without_expiring_history(tmp_path) -> None:
+    # seed_demo decides historical requests; expiry enforcement must not reject
+    # them on a fresh database (regression: server failed to start).
+    store = Store(str(tmp_path / "seed.db"))
+    seed_demo(store)
+    assert store.verify_chain()["ok"] is True
+    assert store.overview()["decisions_total"] == 2
